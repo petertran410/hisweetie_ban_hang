@@ -34,7 +34,7 @@ export default function DashboardPage() {
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <div className="text-2xl font-semibold text-gray-900">
                   {stats?.currentMonthRevenue?.toLocaleString("vi-VN")} ₫
                 </div>
@@ -47,7 +47,7 @@ export default function DashboardPage() {
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <div className="text-2xl font-semibold text-gray-900">
                   {stats?.currentMonthOrders}
                 </div>
@@ -60,7 +60,7 @@ export default function DashboardPage() {
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <div className="text-2xl font-semibold text-gray-900">
                   {stats?.totalCustomerDebt?.toLocaleString("vi-VN")} ₫
                 </div>
@@ -73,7 +73,7 @@ export default function DashboardPage() {
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <div className="text-2xl font-semibold text-gray-900">
                   {stats?.lowStockProducts}
                 </div>

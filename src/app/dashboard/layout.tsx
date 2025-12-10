@@ -147,10 +147,10 @@ export default function DashboardLayout({
             <div className="relative">
               <input
                 type="text"
-                placeholder="Cửa Hàng Điệp Trà"
+                placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
               />
               <svg
                 className="absolute right-3 top-2.5 h-5 w-5 text-gray-400"
@@ -168,7 +168,7 @@ export default function DashboardLayout({
           </div>
 
           {/* Right Side Controls */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 text-black">
             {/* Branch Selector */}
             <div className="relative">
               <button
@@ -189,7 +189,7 @@ export default function DashboardLayout({
                 </svg>
               </button>
               {openDropdown === "branch" && (
-                <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50 text-black">
                   <div className="py-1">
                     {branches.map((branch) => (
                       <button
@@ -198,7 +198,7 @@ export default function DashboardLayout({
                           setSelectedBranch(branch);
                           setOpenDropdown(null);
                         }}
-                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 focus:outline-none">
+                        className="w-full text-black text-left px-4 py-2 text-sm hover:bg-gray-100 focus:outline-none">
                         {branch}
                       </button>
                     ))}
