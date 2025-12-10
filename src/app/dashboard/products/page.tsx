@@ -683,7 +683,7 @@ export default function ProductsPage() {
                     </svg>
                     Sao chép
                   </button>
-                  <div className="flex-1 min-w-[20px]"></div>
+                  <div className="flex-1 min-w-5"></div>
                   <button className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-md whitespace-nowrap">
                     <svg
                       className="w-4 h-4"
