@@ -19,6 +19,7 @@ const DEFAULT_COLUMNS: ColumnConfig[] = [
   { key: "purchasePrice", label: "Giá vốn", visible: true },
   { key: "stockQuantity", label: "Tồn kho", visible: true },
   { key: "minStockAlert", label: "Tồn kho tối thiểu", visible: true },
+  { key: "weight", label: "Trọng lượng", visible: true },
   { key: "createdAt", label: "Thời gian tạo", visible: false },
   { key: "updatedAt", label: "Thời gian cập nhật", visible: false },
   { key: "isActive", label: "Trạng thái", visible: false },
@@ -61,7 +62,6 @@ export default function ProductsPage() {
     null
   );
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  console.log(selectedProduct);
   const [activeTab, setActiveTab] = useState<string>("info");
 
   const [filters, setFilters] = useState({
@@ -394,7 +394,9 @@ export default function ProductsPage() {
             </button>
           </div>
           {hasChildren && isExpanded && (
-            <div>{renderCategoryTree(category.children || [], level + 1)}</div>
+            <div key={`children-${category.id}`}>
+              {renderCategoryTree(category.children || [], level + 1)}
+            </div>
           )}
         </div>
       );
@@ -429,6 +431,8 @@ export default function ProductsPage() {
         return product.stockQuantity;
       case "minStockAlert":
         return product.minStockAlert;
+      case "weight":
+        return Number(product.weight).toLocaleString("en-US") + " g";
       case "createdAt":
         return new Date(product.createdAt).toLocaleDateString("vi-VN");
       case "updatedAt":
@@ -563,7 +567,7 @@ export default function ProductsPage() {
                 <div className="p-6">
                   {activeTab === "info" && (
                     <div className="flex gap-6">
-                      <div className="w-32 h-32 flex-shrink-0">
+                      <div className="w-32 h-32 shrink-0">
                         {selectedProduct.image ? (
                           <img
                             src={selectedProduct.image}
@@ -632,7 +636,10 @@ export default function ProductsPage() {
                             Trọng lượng
                           </div>
                           <div className="font-medium text-gray-900">
-                            {selectedProduct.weight || "0"} g
+                            {Number(selectedProduct.weight).toLocaleString(
+                              "en-US"
+                            ) || "0"}{" "}
+                            g
                           </div>
                         </div>
                         <div>

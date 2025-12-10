@@ -40,6 +40,7 @@ export interface Product {
   collaboratorPrice: number;
   stockQuantity: number;
   minStockAlert: number;
+  weight?: number;
   image?: string;
   description?: string;
   isActive: boolean;
