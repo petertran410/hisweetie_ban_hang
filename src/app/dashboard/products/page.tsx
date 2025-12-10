@@ -400,9 +400,10 @@ export default function ProductsPage() {
       case "variant":
         return product.variant?.name || "-";
       case "retailPrice":
-        return product.retailPrice.toLocaleString("en-US") + " ₫";
+        return Number(product.retailPrice).toLocaleString("en-US") + " ₫";
       case "purchasePrice":
-        return product.purchasePrice.toLocaleString("en-US") + " ₫";
+        return Number(product.purchasePrice).toLocaleString("en-US") + " ₫";
+
       case "stockQuantity":
         return product.stockQuantity;
       case "minStockAlert":
