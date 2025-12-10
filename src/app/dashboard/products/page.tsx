@@ -18,7 +18,6 @@ const DEFAULT_COLUMNS: ColumnConfig[] = [
   { key: "retailPrice", label: "Giá bán", visible: true },
   { key: "purchasePrice", label: "Giá vốn", visible: true },
   { key: "stockQuantity", label: "Tồn kho", visible: true },
-  { key: "minStockAlert", label: "Định mức tồn ít nhất", visible: false },
   { key: "createdAt", label: "Thời gian tạo", visible: false },
   { key: "isActive", label: "Trạng thái", visible: false },
   { key: "isRewardPoint", label: "Tích điểm", visible: false },
@@ -48,7 +47,16 @@ export default function ProductsPage() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         try {
-          return JSON.parse(saved);
+          const savedColumns = JSON.parse(saved);
+          const validKeys = DEFAULT_COLUMNS.map((col) => col.key);
+          return DEFAULT_COLUMNS.map((defaultCol) => {
+            const savedCol = savedColumns.find(
+              (col: ColumnConfig) => col.key === defaultCol.key
+            );
+            return savedCol
+              ? { ...defaultCol, visible: savedCol.visible }
+              : defaultCol;
+          });
         } catch {
           return DEFAULT_COLUMNS;
         }
@@ -126,8 +134,6 @@ export default function ProductsPage() {
       case "purchasePrice":
         return product.purchasePrice.toLocaleString("vi-VN") + " ₫";
       case "stockQuantity":
-        return product.stockQuantity;
-      case "minStockAlert":
         return product.minStockAlert;
       case "createdAt":
         return new Date(product.createdAt).toLocaleDateString("vi-VN");
