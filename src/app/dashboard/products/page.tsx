@@ -25,12 +25,25 @@ const DEFAULT_COLUMNS: ColumnConfig[] = [
 
 const STORAGE_KEY = "products_columns_config";
 
+const STOCK_OPTIONS = [
+  { value: "all", label: "Tất cả" },
+  { value: "below-min", label: "Dưới định mức tồn" },
+  { value: "above-max", label: "Vượt định mức tồn" },
+  { value: "in-stock", label: "Còn hàng trong kho" },
+  { value: "out-of-stock", label: "Hết hàng trong kho" },
+];
+
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [showColumnModal, setShowColumnModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [showStockDropdown, setShowStockDropdown] = useState(false);
+  const [categorySearch, setCategorySearch] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
   const [categoryForm, setCategoryForm] = useState({
     name: "",
     description: "",
@@ -55,7 +68,6 @@ export default function ProductsPage() {
       if (saved) {
         try {
           const savedColumns = JSON.parse(saved);
-          const validKeys = DEFAULT_COLUMNS.map((col) => col.key);
           return DEFAULT_COLUMNS.map((defaultCol) => {
             const savedCol = savedColumns.find(
               (col: ColumnConfig) => col.key === defaultCol.key
@@ -85,6 +97,22 @@ export default function ProductsPage() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(columns));
     }
   }, [columns]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (
+        !target.closest(".category-dropdown") &&
+        !target.closest(".stock-dropdown")
+      ) {
+        setShowCategoryDropdown(false);
+        setShowStockDropdown(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -181,6 +209,101 @@ export default function ProductsPage() {
     return result;
   };
 
+  const toggleCategoryExpand = (categoryId: number) => {
+    setExpandedCategories((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter((id) => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
+
+  const toggleCategorySelect = (categoryId: number) => {
+    setSelectedCategories((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter((id) => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
+
+  const selectAllCategories = () => {
+    setSelectedCategories(categories.map((cat) => cat.id));
+  };
+
+  const clearAllCategories = () => {
+    setSelectedCategories([]);
+  };
+
+  const applyCategoryFilter = () => {
+    setFilters({
+      ...filters,
+      categoryId:
+        selectedCategories.length > 0 ? selectedCategories[0] : undefined,
+    });
+    setShowCategoryDropdown(false);
+  };
+
+  const getFilteredCategories = () => {
+    if (!categorySearch) return categories;
+    return categories.filter((cat) =>
+      cat.name.toLowerCase().includes(categorySearch.toLowerCase())
+    );
+  };
+
+  const renderCategoryTree = (categories: Category[], level = 0) => {
+    const filteredCategories =
+      level === 0 ? getFilteredCategories() : categories;
+    return filteredCategories.map((category) => {
+      const hasChildren = category.children && category.children.length > 0;
+      const isExpanded = expandedCategories.includes(category.id);
+      const isSelected = selectedCategories.includes(category.id);
+
+      return (
+        <div key={category.id}>
+          <div
+            className={`flex items-center py-1 hover:bg-gray-50`}
+            style={{ paddingLeft: `${level * 20}px` }}>
+            <div className="flex items-center w-6">
+              {hasChildren ? (
+                <button
+                  onClick={() => toggleCategoryExpand(category.id)}
+                  className="text-gray-400 hover:text-gray-600 p-0.5">
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d={isExpanded ? "M19 9l-7 7-7-7" : "M9 5l7 7-7 7"}
+                    />
+                  </svg>
+                </button>
+              ) : (
+                <div className="w-4 flex justify-center">
+                  <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
+                </div>
+              )}
+            </div>
+            <label className="flex items-center cursor-pointer flex-1 pl-1">
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => toggleCategorySelect(category.id)}
+                className="mr-2 w-4 h-4"
+              />
+              <span className="text-sm text-gray-700">{category.name}</span>
+            </label>
+          </div>
+          {hasChildren && isExpanded && (
+            <div>{renderCategoryTree(category.children || [], level + 1)}</div>
+          )}
+        </div>
+      );
+    });
+  };
+
   const toggleColumn = (key: string) => {
     setColumns(
       columns.map((col) =>
@@ -206,7 +329,7 @@ export default function ProductsPage() {
       case "purchasePrice":
         return product.purchasePrice.toLocaleString("vi-VN") + " ₫";
       case "stockQuantity":
-        return product.minStockAlert;
+        return product.stockQuantity;
       case "createdAt":
         return new Date(product.createdAt).toLocaleDateString("vi-VN");
       case "isActive":
@@ -236,6 +359,9 @@ export default function ProductsPage() {
   }
 
   const hierarchicalCategories = getCategoryHierarchy(categories);
+  const selectedStockOption = STOCK_OPTIONS.find(
+    (option) => option.value === filters.stockFilter
+  );
 
   return (
     <div className="flex gap-6 h-full">
@@ -243,7 +369,7 @@ export default function ProductsPage() {
         <div className="bg-white rounded-lg shadow p-4 sticky top-6">
           <h3 className="font-semibold text-gray-900 mb-4">Bộ lọc</h3>
 
-          <div className="mb-4">
+          <div className="mb-4 relative">
             <div className="flex justify-between items-center mb-2">
               <label className="block text-sm font-medium text-gray-700">
                 Nhóm hàng
@@ -251,40 +377,134 @@ export default function ProductsPage() {
               <button
                 onClick={() => setShowCategoryModal(true)}
                 className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                Tạo mới
+                + Tạo mới
               </button>
             </div>
-            <select
-              value={filters.categoryId || ""}
-              onChange={(e) =>
-                setFilters({
-                  ...filters,
-                  categoryId: e.target.value
-                    ? Number(e.target.value)
-                    : undefined,
-                })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="">Chọn nhóm hàng</option>
-              {renderCategoryOptions(hierarchicalCategories)}
-            </select>
+            <div className="category-dropdown relative">
+              <button
+                onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-left bg-white hover:bg-gray-50 flex items-center justify-between">
+                <span className="text-gray-500">Chọn nhóm hàng</span>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+
+              {showCategoryDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-80 overflow-hidden">
+                  <div className="flex">
+                    <div className="w-full p-3 border-b border-gray-200">
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Tìm kiếm"
+                          value={categorySearch}
+                          onChange={(e) => setCategorySearch(e.target.value)}
+                          className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <svg
+                          className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="max-h-60 overflow-y-auto p-2">
+                    {renderCategoryTree(hierarchicalCategories)}
+                  </div>
+
+                  <div className="p-3 border-t border-gray-200 flex items-center justify-between">
+                    <button
+                      onClick={clearAllCategories}
+                      className="text-sm text-blue-600 hover:text-blue-800">
+                      Chọn tất cả
+                    </button>
+                    <button
+                      onClick={applyCategoryFilter}
+                      className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">
+                      Áp dụng
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="mb-4">
+          <div className="mb-4 relative">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Tồn kho
             </label>
-            <select
-              value={filters.stockFilter}
-              onChange={(e) =>
-                setFilters({ ...filters, stockFilter: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="all">Tất cả</option>
-              <option value="in-stock">Còn hàng</option>
-              <option value="low-stock">Sắp hết</option>
-              <option value="out-of-stock">Hết hàng</option>
-            </select>
+            <div className="stock-dropdown relative">
+              <button
+                onClick={() => setShowStockDropdown(!showStockDropdown)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-left bg-white hover:bg-gray-50 flex items-center justify-between">
+                <span>{selectedStockOption?.label}</span>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+
+              {showStockDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                  {STOCK_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        setFilters({ ...filters, stockFilter: option.value });
+                        setShowStockDropdown(false);
+                      }}
+                      className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between ${
+                        filters.stockFilter === option.value
+                          ? "bg-blue-50 text-blue-600"
+                          : "text-gray-700"
+                      }`}>
+                      <span>{option.label}</span>
+                      {filters.stockFilter === option.value && (
+                        <svg
+                          className="w-4 h-4 text-blue-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="mb-4">
@@ -570,7 +790,7 @@ export default function ProductsPage() {
 
       {/* Category Creation Modal */}
       {showCategoryModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96 max-w-90vw">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-gray-900">
@@ -584,8 +804,8 @@ export default function ProductsPage() {
             </div>
 
             <form onSubmit={handleCreateCategory}>
-              <div className="mb-4 text-black">
-                <label className="block text-sm font-medium text-black mb-2">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Tên nhóm
                 </label>
                 <input
@@ -599,8 +819,8 @@ export default function ProductsPage() {
                 />
               </div>
 
-              <div className="mb-4 text-black">
-                <label className="block text-sm font-medium mb-2">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Nhóm cha
                 </label>
                 <select
