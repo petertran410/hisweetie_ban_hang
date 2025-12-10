@@ -33,14 +33,18 @@ const STOCK_OPTIONS = [
   { value: "out-of-stock", label: "Hết hàng trong kho" },
 ];
 
+const LIMIT_OPTIONS = [15, 20, 30, 50, 100];
+
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
   const [showColumnModal, setShowColumnModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showStockDropdown, setShowStockDropdown] = useState(false);
+  const [showLimitDropdown, setShowLimitDropdown] = useState(false);
   const [categorySearch, setCategorySearch] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
@@ -60,7 +64,7 @@ export default function ProductsPage() {
     isRewardPoint: undefined as boolean | undefined,
     isActive: undefined as boolean | undefined,
     page: 1,
-    limit: 50,
+    limit: 15,
   });
 
   const [columns, setColumns] = useState<ColumnConfig[]>(() => {
@@ -104,10 +108,12 @@ export default function ProductsPage() {
       const target = event.target as Element;
       if (
         !target.closest(".category-dropdown") &&
-        !target.closest(".stock-dropdown")
+        !target.closest(".stock-dropdown") &&
+        !target.closest(".limit-dropdown")
       ) {
         setShowCategoryDropdown(false);
         setShowStockDropdown(false);
+        setShowLimitDropdown(false);
       }
     };
 
@@ -129,8 +135,10 @@ export default function ProductsPage() {
 
       const response = await productsAPI.getAll(params);
       setProducts(response.data.data || []);
+      setTotal(response.data.total || 0);
     } catch (error) {
       setProducts([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
@@ -265,6 +273,7 @@ export default function ProductsPage() {
       ...filters,
       categoryId:
         selectedCategories.length > 0 ? selectedCategories[0] : undefined,
+      page: 1,
     });
     setShowCategoryDropdown(false);
   };
@@ -411,6 +420,18 @@ export default function ProductsPage() {
     }
   };
 
+  const handlePageChange = (newPage: number) => {
+    const totalPages = Math.ceil(total / filters.limit);
+    if (newPage >= 1 && newPage <= totalPages) {
+      setFilters({ ...filters, page: newPage });
+    }
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setFilters({ ...filters, limit: newLimit, page: 1 });
+    setShowLimitDropdown(false);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -427,10 +448,14 @@ export default function ProductsPage() {
     (option) => option.value === filters.stockFilter
   );
 
+  const totalPages = Math.ceil(total / filters.limit);
+  const startIndex = (filters.page - 1) * filters.limit + 1;
+  const endIndex = Math.min(filters.page * filters.limit, total);
+
   return (
-    <div className="flex gap-6 h-full">
-      <div className="w-64 shrink-0 space-y-4 overflow-y-auto">
-        <div className="bg-white rounded-lg shadow p-4 sticky top-6">
+    <div className="flex gap-6 h-[calc(100vh-10rem)] overflow-hidden">
+      <div className="w-64 shrink-0 overflow-y-auto pr-2">
+        <div className="bg-white rounded-lg shadow p-2">
           <h3 className="font-semibold text-gray-900 mb-4">Bộ lọc</h3>
 
           <div className="mb-4 relative">
@@ -773,8 +798,8 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      <div className="flex-1 min-w-0 space-y-4">
-        <div className="flex justify-between items-center">
+      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+        <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold text-gray-900">
             Danh sách hàng hóa
           </h1>
@@ -819,8 +844,8 @@ export default function ProductsPage() {
             <p className="text-gray-500">Chưa có sản phẩm nào</p>
           </div>
         ) : (
-          <div className="bg-white shadow rounded-lg">
-            <div className="overflow-x-auto">
+          <div className="bg-white shadow rounded-lg flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -848,11 +873,160 @@ export default function ProductsPage() {
                 </tbody>
               </table>
             </div>
+
+            <div className="px-6 py-3 border-t border-gray-200 flex items-center justify-between text-black">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-700">Hiển thị</span>
+                <div className="limit-dropdown relative">
+                  <button
+                    onClick={() => setShowLimitDropdown(!showLimitDropdown)}
+                    className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white hover:bg-gray-50 flex items-center gap-1">
+                    <span>{filters.limit} dòng</span>
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+
+                  {showLimitDropdown && (
+                    <div className="absolute bottom-full left-0 mb-1 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                      {LIMIT_OPTIONS.map((limit) => (
+                        <button
+                          key={limit}
+                          onClick={() => handleLimitChange(limit)}
+                          className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between ${
+                            filters.limit === limit
+                              ? "bg-blue-50 text-blue-600"
+                              : "text-gray-700"
+                          }`}>
+                          <span>{limit} dòng</span>
+                          {filters.limit === limit && (
+                            <svg
+                              className="w-4 h-4 text-blue-600"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24">
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-gray-700">
+                  {startIndex} - {endIndex} trong {total} hàng hóa
+                </span>
+
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handlePageChange(1)}
+                    disabled={filters.page === 1}
+                    className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
+                      />
+                    </svg>
+                  </button>
+
+                  <button
+                    onClick={() => handlePageChange(filters.page - 1)}
+                    disabled={filters.page === 1}
+                    className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 19l-7-7 7-7"
+                      />
+                    </svg>
+                  </button>
+
+                  <input
+                    type="number"
+                    min="1"
+                    max={totalPages}
+                    value={filters.page}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      if (!isNaN(value)) {
+                        handlePageChange(value);
+                      }
+                    }}
+                    className="w-12 px-2 py-1 text-center border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+
+                  <button
+                    onClick={() => handlePageChange(filters.page + 1)}
+                    disabled={filters.page === totalPages}
+                    className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </button>
+
+                  <button
+                    onClick={() => handlePageChange(totalPages)}
+                    disabled={filters.page === totalPages}
+                    className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 5l7 7-7 7M5 5l7 7-7 7"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Category Creation/Edit Modal */}
       {showCategoryModal && (
         <div className="fixed inset-0 bg-white bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="rounded-lg p-6 w-96 max-w-90vw shadow-xl border">
