@@ -242,18 +242,40 @@ export default function ProductsPage() {
     setShowCategoryDropdown(false);
   };
 
-  const getFilteredCategories = () => {
+  const getFilteredCategories = (categories: Category[]): Category[] => {
     if (!categorySearch) return categories;
-    return categories.filter((cat) =>
-      cat.name.toLowerCase().includes(categorySearch.toLowerCase())
-    );
+
+    const filterRecursive = (cats: Category[]): Category[] => {
+      return cats
+        .filter((cat) => {
+          const nameMatch = cat.name
+            .toLowerCase()
+            .includes(categorySearch.toLowerCase());
+          const hasMatchingChildren =
+            cat.children && filterRecursive(cat.children).length > 0;
+
+          if (nameMatch || hasMatchingChildren) {
+            return {
+              ...cat,
+              children: cat.children ? filterRecursive(cat.children) : [],
+            };
+          }
+          return false;
+        })
+        .map((cat) => ({
+          ...cat,
+          children: cat.children ? filterRecursive(cat.children) : [],
+        }));
+    };
+
+    return filterRecursive(categories);
   };
 
   const renderCategoryTree = (categories: Category[], level = 0) => {
-    const filteredCategories =
-      level === 0 ? getFilteredCategories() : categories;
+    const categoriesToRender =
+      level === 0 ? getFilteredCategories(hierarchicalCategories) : categories;
 
-    return filteredCategories.map((category) => {
+    return categoriesToRender.map((category) => {
       const hasChildren = category.children && category.children.length > 0;
       const isExpanded = expandedCategories.includes(category.id);
       const isSelected = selectedCategories.includes(category.id);
