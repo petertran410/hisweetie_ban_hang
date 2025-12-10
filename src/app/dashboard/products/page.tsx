@@ -341,7 +341,7 @@ export default function ProductsPage() {
                 onChange={() => toggleCategorySelect(category.id)}
                 className="w-4 h-4 mr-2"
               />
-              <span className="text-sm text-gray-700">{category.name})</span>
+              <span className="text-sm text-gray-700">{category.name}</span>
             </div>
             <button
               onClick={() => handleEditCategory(category)}
@@ -491,7 +491,7 @@ export default function ProductsPage() {
                     </div>
                   </div>
 
-                  <div className="max-h-60 overflow-y-auto p-2">
+                  <div className="max-h-40 overflow-y-auto p-2">
                     {renderCategoryTree(hierarchicalCategories)}
                   </div>
 
@@ -871,7 +871,7 @@ export default function ProductsPage() {
             </div>
 
             <form onSubmit={handleCreateCategory}>
-              <div className="mb-4">
+              <div className="mb-4 text-black">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Tên nhóm
                 </label>
@@ -881,12 +881,12 @@ export default function ProductsPage() {
                   onChange={(e) =>
                     setCategoryForm({ ...categoryForm, name: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                   required
                 />
               </div>
 
-              <div className="mb-4">
+              <div className="mb-4 text-black">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Nhóm cha
                 </label>
