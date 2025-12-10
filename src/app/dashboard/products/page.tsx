@@ -18,7 +18,9 @@ const DEFAULT_COLUMNS: ColumnConfig[] = [
   { key: "retailPrice", label: "Giá bán", visible: true },
   { key: "purchasePrice", label: "Giá vốn", visible: true },
   { key: "stockQuantity", label: "Tồn kho", visible: true },
+  { key: "minStockAlert", label: "Tồn kho tối thiểu", visible: true },
   { key: "createdAt", label: "Thời gian tạo", visible: false },
+  { key: "updatedAt", label: "Thời gian cập nhật", visible: false },
   { key: "isActive", label: "Trạng thái", visible: false },
   { key: "isRewardPoint", label: "Tích điểm", visible: false },
 ];
@@ -398,13 +400,17 @@ export default function ProductsPage() {
       case "variant":
         return product.variant?.name || "-";
       case "retailPrice":
-        return product.retailPrice.toLocaleString("vi-VN") + " ₫";
+        return product.retailPrice.toLocaleString("en-US") + " ₫";
       case "purchasePrice":
-        return product.purchasePrice.toLocaleString("vi-VN") + " ₫";
+        return product.purchasePrice.toLocaleString("en-US") + " ₫";
       case "stockQuantity":
         return product.stockQuantity;
+      case "minStockAlert":
+        return product.minStockAlert;
       case "createdAt":
         return new Date(product.createdAt).toLocaleDateString("vi-VN");
+      case "updatedAt":
+        return new Date(product.updatedAt).toLocaleDateString("vi-VN");
       case "isActive":
         return product.isActive ? (
           <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
