@@ -282,42 +282,40 @@ export default function ProductsPage() {
 
       return (
         <div key={category.id}>
-          <div
-            className={`flex items-center py-1 hover:bg-gray-50`}
-            style={{ paddingLeft: `${level * 20}px` }}>
-            <div className="flex items-center w-6">
-              {hasChildren ? (
-                <button
-                  onClick={() => toggleCategoryExpand(category.id)}
-                  className="text-gray-400 hover:text-gray-600 p-0.5">
-                  <svg
-                    className="w-3 h-3"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d={isExpanded ? "M19 9l-7 7-7-7" : "M9 5l7 7-7 7"}
-                    />
-                  </svg>
-                </button>
-              ) : (
-                <div className="w-4 flex justify-center">
+          <div className="flex items-center py-1 hover:bg-gray-50">
+            <div
+              className="flex items-center"
+              style={{ paddingLeft: `${level * 16}px` }}>
+              <div className="w-4 h-4 flex items-center justify-center mr-1">
+                {hasChildren ? (
+                  <button
+                    onClick={() => toggleCategoryExpand(category.id)}
+                    className="text-gray-400 hover:text-gray-600">
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d={isExpanded ? "M19 9l-7 7-7-7" : "M9 5l7 7-7 7"}
+                      />
+                    </svg>
+                  </button>
+                ) : (
                   <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
-                </div>
-              )}
-            </div>
-            <label className="flex items-center cursor-pointer flex-1 pl-1">
+                )}
+              </div>
               <input
                 type="checkbox"
                 checked={isSelected}
                 onChange={() => toggleCategorySelect(category.id)}
-                className="mr-2 w-4 h-4"
+                className="w-4 h-4 mr-2"
               />
               <span className="text-sm text-gray-700">{category.name}</span>
-            </label>
+            </div>
           </div>
           {hasChildren && isExpanded && (
             <div>{renderCategoryTree(category.children || [], level + 1)}</div>
