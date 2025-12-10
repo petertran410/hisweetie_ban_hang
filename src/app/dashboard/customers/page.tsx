@@ -1,27 +1,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { categoriesAPI } from "../../../lib/api";
-import type { Category } from "../../../types/index";
+import { customersAPI } from "../../../lib/api";
+import type { Customer } from "../../../types/index";
 
-export default function CategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>([]);
+export default function CustomersPage() {
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchCustomers = async () => {
       try {
-        const response = await categoriesAPI.getAll();
-        setCategories(response.data || []);
+        const response = await customersAPI.getAll();
+        setCustomers(response.data.data || []);
       } catch (error) {
-        console.error("Error fetching categories:", error);
-        setCategories([]);
+        console.error("Error fetching customers:", error);
+        setCustomers([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCategories();
+    fetchCustomers();
   }, []);
 
   if (loading) {
@@ -38,15 +38,15 @@ export default function CategoriesPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Danh mục</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Khách hàng</h1>
         <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
-          Thêm danh mục
+          Thêm khách hàng
         </button>
       </div>
 
-      {categories.length === 0 ? (
+      {customers.length === 0 ? (
         <div className="bg-white shadow rounded-lg p-8 text-center">
-          <p className="text-gray-500">Chưa có danh mục nào</p>
+          <p className="text-gray-500">Chưa có khách hàng nào</p>
         </div>
       ) : (
         <div className="bg-white shadow overflow-hidden sm:rounded-lg">
@@ -54,34 +54,44 @@ export default function CategoriesPage() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tên danh mục
+                  Mã KH
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Danh mục cha
+                  Tên khách hàng
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Trạng thái
+                  Số điện thoại
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Tổng mua
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Công nợ
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {categories.map((category) => (
-                <tr key={category.id}>
+              {customers.map((customer) => (
+                <tr key={customer.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {category.name}
+                    {customer.code}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {category.parent?.name || "-"}
+                    {customer.name}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {category.isActive ? (
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                        Hoạt động
+                    {customer.phone}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {customer.totalPurchased.toLocaleString("vi-VN")} ₫
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {customer.totalDebt > 0 ? (
+                      <span className="text-red-600 font-semibold">
+                        {customer.totalDebt.toLocaleString("vi-VN")} ₫
                       </span>
                     ) : (
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                        Không hoạt động
-                      </span>
+                      <span className="text-green-600">0 ₫</span>
                     )}
                   </td>
                 </tr>
