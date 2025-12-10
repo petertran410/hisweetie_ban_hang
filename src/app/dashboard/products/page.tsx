@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 import { productsAPI, categoriesAPI } from "../../../lib/api";
 import type { Product, Category } from "../../../types/index";
 
@@ -30,6 +30,13 @@ export default function ProductsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [showColumnModal, setShowColumnModal] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [categoryForm, setCategoryForm] = useState({
+    name: "",
+    description: "",
+    parentId: undefined as number | undefined,
+  });
+  const [categoryLoading, setCategoryLoading] = useState(false);
 
   const [filters, setFilters] = useState({
     search: "",
@@ -109,6 +116,71 @@ export default function ProductsPage() {
     }
   };
 
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!categoryForm.name.trim()) return;
+
+    try {
+      setCategoryLoading(true);
+      await categoriesAPI.create({
+        name: categoryForm.name.trim(),
+        description: categoryForm.description.trim() || undefined,
+        parentId: categoryForm.parentId,
+      });
+
+      setCategoryForm({ name: "", description: "", parentId: undefined });
+      setShowCategoryModal(false);
+      fetchCategories();
+    } catch (error) {
+      console.error("Error creating category:", error);
+    } finally {
+      setCategoryLoading(false);
+    }
+  };
+
+  const getCategoryHierarchy = (categories: Category[]): Category[] => {
+    const categoryMap = new Map<number, Category & { children: Category[] }>();
+
+    categories.forEach((cat) => {
+      categoryMap.set(cat.id, { ...cat, children: [] });
+    });
+
+    const roots: Category[] = [];
+    categories.forEach((cat) => {
+      const category = categoryMap.get(cat.id)!;
+      if (cat.parentId && categoryMap.has(cat.parentId)) {
+        categoryMap.get(cat.parentId)!.children.push(category);
+      } else {
+        roots.push(category);
+      }
+    });
+
+    return roots;
+  };
+
+  const renderCategoryOptions = (
+    categories: Category[],
+    level = 0
+  ): JSX.Element[] => {
+    const result: JSX.Element[] = [];
+
+    categories.forEach((cat) => {
+      const prefix = "  ".repeat(level);
+      result.push(
+        <option key={cat.id} value={cat.id}>
+          {prefix}
+          {cat.name}
+        </option>
+      );
+
+      if (cat.children && cat.children.length > 0) {
+        result.push(...renderCategoryOptions(cat.children, level + 1));
+      }
+    });
+
+    return result;
+  };
+
   const toggleColumn = (key: string) => {
     setColumns(
       columns.map((col) =>
@@ -163,6 +235,8 @@ export default function ProductsPage() {
     );
   }
 
+  const hierarchicalCategories = getCategoryHierarchy(categories);
+
   return (
     <div className="flex gap-6 h-full">
       <div className="w-64 shrink-0 space-y-4 overflow-y-auto">
@@ -170,12 +244,16 @@ export default function ProductsPage() {
           <h3 className="font-semibold text-gray-900 mb-4">Bộ lọc</h3>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Nhóm hàng
-            </label>
-            <button className="w-full text-left px-3 py-2 border border-gray-300 rounded-md text-sm text-blue-600 hover:bg-gray-50">
-              Tạo mới
-            </button>
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Nhóm hàng
+              </label>
+              <button
+                onClick={() => setShowCategoryModal(true)}
+                className="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                Tạo mới
+              </button>
+            </div>
             <select
               value={filters.categoryId || ""}
               onChange={(e) =>
@@ -186,13 +264,9 @@ export default function ProductsPage() {
                     : undefined,
                 })
               }
-              className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="">Chọn nhóm hàng</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
+              {renderCategoryOptions(hierarchicalCategories)}
             </select>
           </div>
 
@@ -493,6 +567,76 @@ export default function ProductsPage() {
           </div>
         )}
       </div>
+
+      {/* Category Creation Modal */}
+      {showCategoryModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 max-w-90vw">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Tạo nhóm hàng
+              </h2>
+              <button
+                onClick={() => setShowCategoryModal(false)}
+                className="text-gray-400 hover:text-gray-600">
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateCategory}>
+              <div className="mb-4 text-black">
+                <label className="block text-sm font-medium text-black mb-2">
+                  Tên nhóm
+                </label>
+                <input
+                  type="text"
+                  value={categoryForm.name}
+                  onChange={(e) =>
+                    setCategoryForm({ ...categoryForm, name: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              <div className="mb-4 text-black">
+                <label className="block text-sm font-medium mb-2">
+                  Nhóm cha
+                </label>
+                <select
+                  value={categoryForm.parentId || ""}
+                  onChange={(e) =>
+                    setCategoryForm({
+                      ...categoryForm,
+                      parentId: e.target.value
+                        ? Number(e.target.value)
+                        : undefined,
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="">Chọn nhóm hàng</option>
+                  {renderCategoryOptions(hierarchicalCategories)}
+                </select>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowCategoryModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                  Bỏ qua
+                </button>
+                <button
+                  type="submit"
+                  disabled={categoryLoading || !categoryForm.name.trim()}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                  {categoryLoading ? "Đang tạo..." : "Lưu"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
