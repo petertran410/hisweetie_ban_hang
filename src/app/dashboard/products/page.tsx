@@ -44,6 +44,7 @@ export default function ProductsPage() {
   const [categorySearch, setCategorySearch] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [categoryForm, setCategoryForm] = useState({
     name: "",
     description: "",
@@ -150,20 +151,46 @@ export default function ProductsPage() {
 
     try {
       setCategoryLoading(true);
-      await categoriesAPI.create({
-        name: categoryForm.name.trim(),
-        description: categoryForm.description.trim() || undefined,
-        parentId: categoryForm.parentId,
-      });
+
+      if (editingCategory) {
+        await categoriesAPI.update(editingCategory.id, {
+          name: categoryForm.name.trim(),
+          description: categoryForm.description.trim() || undefined,
+          parentId: categoryForm.parentId,
+        });
+      } else {
+        await categoriesAPI.create({
+          name: categoryForm.name.trim(),
+          description: categoryForm.description.trim() || undefined,
+          parentId: categoryForm.parentId,
+        });
+      }
 
       setCategoryForm({ name: "", description: "", parentId: undefined });
+      setEditingCategory(null);
       setShowCategoryModal(false);
       fetchCategories();
     } catch (error) {
-      console.error("Error creating category:", error);
+      console.error("Error saving category:", error);
     } finally {
       setCategoryLoading(false);
     }
+  };
+
+  const handleEditCategory = (category: Category) => {
+    setEditingCategory(category);
+    setCategoryForm({
+      name: category.name,
+      description: category.description || "",
+      parentId: category.parentId || undefined,
+    });
+    setShowCategoryModal(true);
+  };
+
+  const handleCreateNew = () => {
+    setEditingCategory(null);
+    setCategoryForm({ name: "", description: "", parentId: undefined });
+    setShowCategoryModal(true);
   };
 
   const getCategoryHierarchy = (categories: Category[]): Category[] => {
@@ -282,9 +309,9 @@ export default function ProductsPage() {
 
       return (
         <div key={category.id}>
-          <div className="flex items-center py-1 hover:bg-gray-50">
+          <div className="flex items-center py-1 hover:bg-gray-50 group">
             <div
-              className="flex items-center"
+              className="flex items-center flex-1"
               style={{ paddingLeft: `${level * 16}px` }}>
               <div className="w-4 h-4 flex items-center justify-center mr-1">
                 {hasChildren ? (
@@ -314,8 +341,24 @@ export default function ProductsPage() {
                 onChange={() => toggleCategorySelect(category.id)}
                 className="w-4 h-4 mr-2"
               />
-              <span className="text-sm text-gray-700">{category.name}</span>
+              <span className="text-sm text-gray-700">{category.name})</span>
             </div>
+            <button
+              onClick={() => handleEditCategory(category)}
+              className="opacity-0 group-hover:opacity-100 mr-2 p-1 text-gray-400 hover:text-gray-600 transition-opacity">
+              <svg
+                className="w-3 h-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                />
+              </svg>
+            </button>
           </div>
           {hasChildren && isExpanded && (
             <div>{renderCategoryTree(category.children || [], level + 1)}</div>
@@ -396,7 +439,7 @@ export default function ProductsPage() {
                 Nhóm hàng
               </label>
               <button
-                onClick={() => setShowCategoryModal(true)}
+                onClick={handleCreateNew}
                 className="text-xs text-blue-600 hover:text-blue-800 font-medium">
                 + Tạo mới
               </button>
@@ -422,31 +465,33 @@ export default function ProductsPage() {
 
               {showCategoryDropdown && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-80 overflow-hidden">
-                  <div className="p-3 border-b border-gray-200">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="Tìm kiếm"
-                        value={categorySearch}
-                        onChange={(e) => setCategorySearch(e.target.value)}
-                        className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                      />
-                      <svg
-                        className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  <div className="flex">
+                    <div className="w-full p-3 border-b border-gray-200">
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Tìm kiếm"
+                          value={categorySearch}
+                          onChange={(e) => setCategorySearch(e.target.value)}
+                          className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                         />
-                      </svg>
+                        <svg
+                          className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                          />
+                        </svg>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="max-h-60 overflow-y-auto">
+                  <div className="max-h-60 overflow-y-auto p-2">
                     {renderCategoryTree(hierarchicalCategories)}
                   </div>
 
@@ -807,16 +852,19 @@ export default function ProductsPage() {
         )}
       </div>
 
-      {/* Category Creation Modal */}
+      {/* Category Creation/Edit Modal */}
       {showCategoryModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 max-w-90vw">
+        <div className="fixed inset-0 bg-white bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="rounded-lg p-6 w-96 max-w-90vw shadow-xl border">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-gray-900">
-                Tạo nhóm hàng
+                {editingCategory ? "Chỉnh sửa nhóm hàng" : "Tạo nhóm hàng"}
               </h2>
               <button
-                onClick={() => setShowCategoryModal(false)}
+                onClick={() => {
+                  setShowCategoryModal(false);
+                  setEditingCategory(null);
+                }}
                 className="text-gray-400 hover:text-gray-600">
                 ✕
               </button>
@@ -833,7 +881,7 @@ export default function ProductsPage() {
                   onChange={(e) =>
                     setCategoryForm({ ...categoryForm, name: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
@@ -852,16 +900,23 @@ export default function ProductsPage() {
                         : undefined,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900">
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="">Chọn nhóm hàng</option>
-                  {renderCategoryOptions(hierarchicalCategories)}
+                  {renderCategoryOptions(
+                    hierarchicalCategories.filter(
+                      (cat) => cat.id !== editingCategory?.id
+                    )
+                  )}
                 </select>
               </div>
 
               <div className="flex justify-end space-x-3">
                 <button
                   type="button"
-                  onClick={() => setShowCategoryModal(false)}
+                  onClick={() => {
+                    setShowCategoryModal(false);
+                    setEditingCategory(null);
+                  }}
                   className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
                   Bỏ qua
                 </button>
@@ -869,7 +924,7 @@ export default function ProductsPage() {
                   type="submit"
                   disabled={categoryLoading || !categoryForm.name.trim()}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                  {categoryLoading ? "Đang tạo..." : "Lưu"}
+                  {categoryLoading ? "Đang lưu..." : "Lưu"}
                 </button>
               </div>
             </form>
