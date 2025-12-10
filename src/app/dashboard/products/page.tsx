@@ -471,8 +471,8 @@ export default function ProductsPage() {
       <tr>
         <td colSpan={visibleColumns.length} className="p-0">
           <div className="bg-gray-50 border-t border-b border-gray-200">
-            <div className="p-6">
-              <div className="bg-white rounded-lg shadow-sm">
+            <div className="max-w-full overflow-x-auto">
+              <div className="bg-white rounded-lg shadow-sm min-w-[800px]">
                 <div className="flex items-center gap-4 p-4 border-b border-gray-200">
                   <div className="flex items-center gap-2">
                     <input type="checkbox" className="w-4 h-4" />
@@ -491,34 +491,18 @@ export default function ProductsPage() {
                       </svg>
                     </button>
                   </div>
-                  <div className="flex-1">
-                    <h2 className="text-lg font-semibold text-gray-900">
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-lg font-semibold text-gray-900 truncate">
                       {selectedProduct.name}
                     </h2>
-                  </div>
-                  <span className="px-3 py-1 text-sm bg-orange-100 text-orange-600 rounded">
-                    {selectedProduct.variant?.name ||
-                      selectedProduct.category?.name ||
-                      ""}
-                  </span>
-                  <div className="text-right">
-                    <div className="text-sm text-gray-500">
-                      {selectedProduct.category?.name || ""}
-                    </div>
-                    <div className="text-lg font-semibold text-gray-900">
-                      {Number(selectedProduct.retailPrice).toLocaleString(
-                        "vi-VN"
-                      )}{" "}
-                      ₫
-                    </div>
                   </div>
                 </div>
 
                 <div className="border-b border-gray-200">
-                  <div className="flex gap-6 px-6">
+                  <div className="flex gap-6 px-6 overflow-x-auto">
                     <button
                       onClick={() => setActiveTab("info")}
-                      className={`py-3 px-1 border-b-2 text-sm font-medium ${
+                      className={`py-3 px-1 border-b-2 text-sm font-medium whitespace-nowrap ${
                         activeTab === "info"
                           ? "border-blue-600 text-blue-600"
                           : "border-transparent text-gray-500 hover:text-gray-700"
@@ -527,7 +511,7 @@ export default function ProductsPage() {
                     </button>
                     <button
                       onClick={() => setActiveTab("description")}
-                      className={`py-3 px-1 border-b-2 text-sm font-medium ${
+                      className={`py-3 px-1 border-b-2 text-sm font-medium whitespace-nowrap ${
                         activeTab === "description"
                           ? "border-blue-600 text-blue-600"
                           : "border-transparent text-gray-500 hover:text-gray-700"
@@ -536,7 +520,7 @@ export default function ProductsPage() {
                     </button>
                     <button
                       onClick={() => setActiveTab("warehouse")}
-                      className={`py-3 px-1 border-b-2 text-sm font-medium ${
+                      className={`py-3 px-1 border-b-2 text-sm font-medium whitespace-nowrap ${
                         activeTab === "warehouse"
                           ? "border-blue-600 text-blue-600"
                           : "border-transparent text-gray-500 hover:text-gray-700"
@@ -545,7 +529,7 @@ export default function ProductsPage() {
                     </button>
                     <button
                       onClick={() => setActiveTab("inventory")}
-                      className={`py-3 px-1 border-b-2 text-sm font-medium ${
+                      className={`py-3 px-1 border-b-2 text-sm font-medium whitespace-nowrap ${
                         activeTab === "inventory"
                           ? "border-blue-600 text-blue-600"
                           : "border-transparent text-gray-500 hover:text-gray-700"
@@ -554,7 +538,7 @@ export default function ProductsPage() {
                     </button>
                     <button
                       onClick={() => setActiveTab("channels")}
-                      className={`py-3 px-1 border-b-2 text-sm font-medium ${
+                      className={`py-3 px-1 border-b-2 text-sm font-medium whitespace-nowrap ${
                         activeTab === "channels"
                           ? "border-blue-600 text-blue-600"
                           : "border-transparent text-gray-500 hover:text-gray-700"
@@ -566,7 +550,7 @@ export default function ProductsPage() {
 
                 <div className="p-6">
                   {activeTab === "info" && (
-                    <div className="flex gap-6">
+                    <div className="flex flex-col lg:flex-row gap-6">
                       <div className="w-32 h-32 shrink-0">
                         {selectedProduct.image ? (
                           <img
@@ -592,7 +576,7 @@ export default function ProductsPage() {
                         )}
                       </div>
 
-                      <div className="flex-1 grid grid-cols-2 gap-x-8 gap-y-4">
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                         <div>
                           <div className="text-sm text-gray-500">Mã hàng</div>
                           <div className="font-medium text-gray-900">
@@ -636,10 +620,7 @@ export default function ProductsPage() {
                             Trọng lượng
                           </div>
                           <div className="font-medium text-gray-900">
-                            {Number(selectedProduct.weight).toLocaleString(
-                              "en-US"
-                            ) || "0"}{" "}
-                            g
+                            {selectedProduct.weight || "0"} g
                           </div>
                         </div>
                         <div>
@@ -671,8 +652,8 @@ export default function ProductsPage() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
-                  <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md">
+                <div className="flex flex-wrap items-center gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
+                  <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md whitespace-nowrap">
                     <svg
                       className="w-4 h-4"
                       fill="none"
@@ -687,7 +668,7 @@ export default function ProductsPage() {
                     </svg>
                     Xóa
                   </button>
-                  <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md">
+                  <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md whitespace-nowrap">
                     <svg
                       className="w-4 h-4"
                       fill="none"
@@ -702,8 +683,8 @@ export default function ProductsPage() {
                     </svg>
                     Sao chép
                   </button>
-                  <div className="flex-1"></div>
-                  <button className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-md">
+                  <div className="flex-1 min-w-[20px]"></div>
+                  <button className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-md whitespace-nowrap">
                     <svg
                       className="w-4 h-4"
                       fill="none"
@@ -718,7 +699,7 @@ export default function ProductsPage() {
                     </svg>
                     Chỉnh sửa
                   </button>
-                  <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md">
+                  <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md whitespace-nowrap">
                     <svg
                       className="w-4 h-4"
                       fill="none"
