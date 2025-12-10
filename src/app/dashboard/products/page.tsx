@@ -471,264 +471,270 @@ export default function ProductsPage() {
       <tr>
         <td colSpan={visibleColumns.length} className="p-0">
           <div className="bg-gray-50 border-t border-b border-gray-200">
-            <div className="max-w-full overflow-x-auto">
-              <div className="bg-white rounded-lg shadow-sm min-w-[800px]">
-                <div className="flex items-center gap-4 p-4 border-b border-gray-200">
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" className="w-4 h-4" />
-                    <button className="text-gray-400 hover:text-yellow-500">
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h2 className="text-lg font-semibold text-gray-900 truncate">
-                      {selectedProduct.name}
-                    </h2>
-                  </div>
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="flex items-center gap-4 p-4 border-b border-gray-200">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" className="w-4 h-4" />
+                  <button className="text-gray-400 hover:text-yellow-500">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                      />
+                    </svg>
+                  </button>
                 </div>
-
-                <div className="border-b border-gray-200">
-                  <div className="flex gap-6 px-6 overflow-x-auto">
-                    <button
-                      onClick={() => setActiveTab("info")}
-                      className={`py-3 px-1 border-b-2 text-sm font-medium whitespace-nowrap ${
-                        activeTab === "info"
-                          ? "border-blue-600 text-blue-600"
-                          : "border-transparent text-gray-500 hover:text-gray-700"
-                      }`}>
-                      Thông tin
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("description")}
-                      className={`py-3 px-1 border-b-2 text-sm font-medium whitespace-nowrap ${
-                        activeTab === "description"
-                          ? "border-blue-600 text-blue-600"
-                          : "border-transparent text-gray-500 hover:text-gray-700"
-                      }`}>
-                      Mô tả, ghi chú
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("warehouse")}
-                      className={`py-3 px-1 border-b-2 text-sm font-medium whitespace-nowrap ${
-                        activeTab === "warehouse"
-                          ? "border-blue-600 text-blue-600"
-                          : "border-transparent text-gray-500 hover:text-gray-700"
-                      }`}>
-                      Thẻ kho
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("inventory")}
-                      className={`py-3 px-1 border-b-2 text-sm font-medium whitespace-nowrap ${
-                        activeTab === "inventory"
-                          ? "border-blue-600 text-blue-600"
-                          : "border-transparent text-gray-500 hover:text-gray-700"
-                      }`}>
-                      Tồn kho
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("channels")}
-                      className={`py-3 px-1 border-b-2 text-sm font-medium whitespace-nowrap ${
-                        activeTab === "channels"
-                          ? "border-blue-600 text-blue-600"
-                          : "border-transparent text-gray-500 hover:text-gray-700"
-                      }`}>
-                      Liên kết kênh bán
-                    </button>
-                  </div>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg font-semibold text-gray-900 truncate">
+                    {selectedProduct.name}
+                  </h2>
                 </div>
+              </div>
 
-                <div className="p-6">
-                  {activeTab === "info" && (
-                    <div className="flex flex-col lg:flex-row gap-6">
-                      <div className="w-32 h-32 shrink-0">
-                        {selectedProduct.image ? (
-                          <img
-                            src={selectedProduct.image}
-                            alt={selectedProduct.name}
-                            className="w-full h-full object-cover rounded-lg border border-gray-200"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
-                            <svg
-                              className="w-12 h-12 text-gray-400"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24">
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                              />
-                            </svg>
+              <div className="overflow-x-auto">
+                <div className="min-w-[800px]">
+                  <div className="border-b border-gray-200">
+                    <div className="flex gap-6 px-6">
+                      <button
+                        onClick={() => setActiveTab("info")}
+                        className={`py-3 px-1 border-b-2 text-sm font-medium whitespace-nowrap ${
+                          activeTab === "info"
+                            ? "border-blue-600 text-blue-600"
+                            : "border-transparent text-gray-500 hover:text-gray-700"
+                        }`}>
+                        Thông tin
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("description")}
+                        className={`py-3 px-1 border-b-2 text-sm font-medium whitespace-nowrap ${
+                          activeTab === "description"
+                            ? "border-blue-600 text-blue-600"
+                            : "border-transparent text-gray-500 hover:text-gray-700"
+                        }`}>
+                        Mô tả, ghi chú
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("warehouse")}
+                        className={`py-3 px-1 border-b-2 text-sm font-medium whitespace-nowrap ${
+                          activeTab === "warehouse"
+                            ? "border-blue-600 text-blue-600"
+                            : "border-transparent text-gray-500 hover:text-gray-700"
+                        }`}>
+                        Thẻ kho
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("inventory")}
+                        className={`py-3 px-1 border-b-2 text-sm font-medium whitespace-nowrap ${
+                          activeTab === "inventory"
+                            ? "border-blue-600 text-blue-600"
+                            : "border-transparent text-gray-500 hover:text-gray-700"
+                        }`}>
+                        Tồn kho
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("channels")}
+                        className={`py-3 px-1 border-b-2 text-sm font-medium whitespace-nowrap ${
+                          activeTab === "channels"
+                            ? "border-blue-600 text-blue-600"
+                            : "border-transparent text-gray-500 hover:text-gray-700"
+                        }`}>
+                        Liên kết kênh bán
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-6">
+                    {activeTab === "info" && (
+                      <div className="flex flex-col lg:flex-row gap-6">
+                        <div className="w-32 h-32 shrink-0">
+                          {selectedProduct.image ? (
+                            <img
+                              src={selectedProduct.image}
+                              alt={selectedProduct.name}
+                              className="w-full h-full object-cover rounded-lg border border-gray-200"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
+                              <svg
+                                className="w-12 h-12 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                          <div>
+                            <div className="text-sm text-gray-500">Mã hàng</div>
+                            <div className="font-medium text-gray-900">
+                              {selectedProduct.code}
+                            </div>
                           </div>
-                        )}
+                          <div>
+                            <div className="text-sm text-gray-500">Giá vốn</div>
+                            <div className="font-medium text-gray-900">
+                              {Number(
+                                selectedProduct.purchasePrice
+                              ).toLocaleString("vi-VN")}{" "}
+                              ₫
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-sm text-gray-500">Giá bán</div>
+                            <div className="font-medium text-gray-900">
+                              {Number(
+                                selectedProduct.retailPrice
+                              ).toLocaleString("vi-VN")}{" "}
+                              ₫
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-sm text-gray-500">Tồn kho</div>
+                            <div className="font-medium text-gray-900">
+                              {selectedProduct.stockQuantity}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-sm text-gray-500">
+                              Định mức tồn
+                            </div>
+                            <div className="font-medium text-gray-900">
+                              0 - {selectedProduct.minStockAlert}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-sm text-gray-500">
+                              Trọng lượng
+                            </div>
+                            <div className="font-medium text-gray-900">
+                              {selectedProduct.weight || "0"} g
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-sm text-gray-500">Điểm</div>
+                            <div className="font-medium text-gray-900">0</div>
+                          </div>
+                        </div>
                       </div>
+                    )}
 
-                      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                        <div>
-                          <div className="text-sm text-gray-500">Mã hàng</div>
-                          <div className="font-medium text-gray-900">
-                            {selectedProduct.code}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-500">Giá vốn</div>
-                          <div className="font-medium text-gray-900">
-                            {Number(
-                              selectedProduct.purchasePrice
-                            ).toLocaleString("vi-VN")}{" "}
-                            ₫
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-500">Giá bán</div>
-                          <div className="font-medium text-gray-900">
-                            {Number(selectedProduct.retailPrice).toLocaleString(
-                              "vi-VN"
-                            )}{" "}
-                            ₫
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-500">Tồn kho</div>
-                          <div className="font-medium text-gray-900">
-                            {selectedProduct.stockQuantity}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-500">
-                            Định mức tồn
-                          </div>
-                          <div className="font-medium text-gray-900">
-                            0 - {selectedProduct.minStockAlert}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-500">
-                            Trọng lượng
-                          </div>
-                          <div className="font-medium text-gray-900">
-                            {selectedProduct.weight || "0"} g
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-500">Điểm</div>
-                          <div className="font-medium text-gray-900">0</div>
-                        </div>
+                    {activeTab === "description" && (
+                      <div className="text-gray-600">
+                        {selectedProduct.description || "Chưa có mô tả"}
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {activeTab === "description" && (
-                    <div className="text-gray-600">
-                      {selectedProduct.description || "Chưa có mô tả"}
-                    </div>
-                  )}
+                    {activeTab === "warehouse" && (
+                      <div className="text-gray-600">Thông tin thẻ kho</div>
+                    )}
 
-                  {activeTab === "warehouse" && (
-                    <div className="text-gray-600">Thông tin thẻ kho</div>
-                  )}
+                    {activeTab === "inventory" && (
+                      <div className="text-gray-600">Thông tin tồn kho</div>
+                    )}
 
-                  {activeTab === "inventory" && (
-                    <div className="text-gray-600">Thông tin tồn kho</div>
-                  )}
-
-                  {activeTab === "channels" && (
-                    <div className="text-gray-600">
-                      Thông tin liên kết kênh bán
-                    </div>
-                  )}
+                    {activeTab === "channels" && (
+                      <div className="text-gray-600">
+                        Thông tin liên kết kênh bán
+                      </div>
+                    )}
+                  </div>
                 </div>
+              </div>
+            </div>
 
-                <div className="flex flex-wrap items-center gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
-                  <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md whitespace-nowrap">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                    Xóa
-                  </button>
-                  <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md whitespace-nowrap">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                      />
-                    </svg>
-                    Sao chép
-                  </button>
-                  <div className="flex-1 min-w-5"></div>
-                  <button className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-md whitespace-nowrap">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
-                    </svg>
-                    Chỉnh sửa
-                  </button>
-                  <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md whitespace-nowrap">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                      />
-                    </svg>
-                    In tem mã
-                  </button>
-                  <button className="p-2 text-gray-700 hover:bg-gray-100 rounded-md">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                      />
-                    </svg>
-                  </button>
-                </div>
+            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-white">
+              <div className="flex items-center gap-3">
+                <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md whitespace-nowrap">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                  Xóa
+                </button>
+                <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md whitespace-nowrap">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                  Sao chép
+                </button>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-md whitespace-nowrap">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Chỉnh sửa
+                </button>
+                <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md whitespace-nowrap">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                    />
+                  </svg>
+                  In tem mã
+                </button>
+                <button className="p-2 text-gray-700 hover:bg-gray-100 rounded-md">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                    />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
