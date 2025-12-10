@@ -252,6 +252,7 @@ export default function ProductsPage() {
   const renderCategoryTree = (categories: Category[], level = 0) => {
     const filteredCategories =
       level === 0 ? getFilteredCategories() : categories;
+
     return filteredCategories.map((category) => {
       const hasChildren = category.children && category.children.length > 0;
       const isExpanded = expandedCategories.includes(category.id);
@@ -401,33 +402,31 @@ export default function ProductsPage() {
 
               {showCategoryDropdown && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-80 overflow-hidden">
-                  <div className="flex">
-                    <div className="w-full p-3 border-b border-gray-200">
-                      <div className="relative">
-                        <input
-                          type="text"
-                          placeholder="Tìm kiếm"
-                          value={categorySearch}
-                          onChange={(e) => setCategorySearch(e.target.value)}
-                          className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  <div className="p-3 border-b border-gray-200">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Tìm kiếm"
+                        value={categorySearch}
+                        onChange={(e) => setCategorySearch(e.target.value)}
+                        className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <svg
+                        className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                         />
-                        <svg
-                          className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                          />
-                        </svg>
-                      </div>
+                      </svg>
                     </div>
                   </div>
 
-                  <div className="max-h-60 overflow-y-auto p-2">
+                  <div className="max-h-60 overflow-y-auto">
                     {renderCategoryTree(hierarchicalCategories)}
                   </div>
 
