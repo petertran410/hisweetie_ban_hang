@@ -43,6 +43,7 @@ export interface Product {
   weight?: number;
   image?: string;
   description?: string;
+  orderTemplate?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
