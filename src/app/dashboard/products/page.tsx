@@ -48,6 +48,12 @@ export default function ProductsPage() {
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showStockDropdown, setShowStockDropdown] = useState(false);
   const [showLimitDropdown, setShowLimitDropdown] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDescriptionModal, setShowDescriptionModal] = useState(false);
+  const [descriptionForm, setDescriptionForm] = useState({
+    description: "",
+    orderTemplate: "",
+  });
   const [categorySearch, setCategorySearch] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
@@ -62,6 +68,7 @@ export default function ProductsPage() {
     null
   );
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  console.log(selectedProduct);
   const [activeTab, setActiveTab] = useState<string>("info");
 
   const [filters, setFilters] = useState({
@@ -174,6 +181,47 @@ export default function ProductsPage() {
       } catch (error) {
         console.error("Error fetching product details:", error);
       }
+    }
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!selectedProduct) return;
+
+    try {
+      await productsAPI.delete(selectedProduct.id);
+      setShowDeleteModal(false);
+      setExpandedProductId(null);
+      setSelectedProduct(null);
+      fetchData();
+    } catch (error) {
+      console.error("Error deleting product:", error);
+    }
+  };
+
+  const handleOpenDescriptionEdit = () => {
+    if (!selectedProduct) return;
+    setDescriptionForm({
+      description: selectedProduct.description || "",
+      orderTemplate: selectedProduct.orderTemplate || "",
+    });
+    setShowDescriptionModal(true);
+  };
+
+  const handleSaveDescription = async () => {
+    if (!selectedProduct) return;
+
+    try {
+      await productsAPI.update(selectedProduct.id, {
+        description: descriptionForm.description,
+        orderTemplate: descriptionForm.orderTemplate,
+      });
+
+      const response = await productsAPI.getById(selectedProduct.id);
+      setSelectedProduct(response.data);
+      setShowDescriptionModal(false);
+      fetchData();
+    } catch (error) {
+      console.error("Error updating description:", error);
     }
   };
 
@@ -632,8 +680,43 @@ export default function ProductsPage() {
                   )}
 
                   {activeTab === "description" && (
-                    <div className="text-gray-600">
-                      {selectedProduct.description || "Chưa có mô tả"}
+                    <div className="space-y-4">
+                      <div className="flex justify-end mb-4">
+                        <button
+                          onClick={handleOpenDescriptionEdit}
+                          className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-md">
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
+                          Chỉnh sửa
+                        </button>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-700 mb-2">
+                          Mô tả
+                        </h3>
+                        <div className="text-gray-600 whitespace-pre-wrap">
+                          {selectedProduct.description || "Chưa có mô tả"}
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-700 mb-2">
+                          Mẫu ghi chú (hóa đơn, đặt hàng)
+                        </h3>
+                        <div className="text-gray-600 whitespace-pre-wrap">
+                          {selectedProduct.orderTemplate ||
+                            "Chưa có mẫu ghi chú"}
+                        </div>
+                      </div>
                     </div>
                   )}
 
@@ -656,7 +739,9 @@ export default function ProductsPage() {
 
             <div className="sticky left-0 right-0 flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-white">
               <div className="flex items-center gap-3">
-                <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md whitespace-nowrap">
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md whitespace-nowrap">
                   <svg
                     className="w-4 h-4"
                     fill="none"
@@ -1344,6 +1429,151 @@ export default function ProductsPage() {
           </div>
         )}
       </div>
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 backdrop-brightness-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-[480px] max-w-90vw shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Xóa hàng hóa
+              </h2>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="text-gray-400 hover:text-gray-600">
+                ✕
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-sm text-gray-600">
+                Hệ thống sẽ điều chỉnh tồn kho về 0 vì hàng hóa{" "}
+                <strong>{selectedProduct?.code}</strong> còn tồn kho sẽ ảnh
+                hưởng tới giá trị kho trong các báo cáo. Bạn có chắc chắn muốn
+                xóa?
+              </p>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                Bỏ qua
+              </button>
+              <button
+                onClick={handleDeleteProduct}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                Đồng ý
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDescriptionModal && (
+        <div className="fixed inset-0 backdrop-brightness-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-[600px] max-w-90vw shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Sửa hàng hóa
+              </h2>
+              <button
+                onClick={() => setShowDescriptionModal(false)}
+                className="text-gray-400 hover:text-gray-600">
+                ✕
+              </button>
+            </div>
+
+            <div className="border-b border-gray-200 mb-4">
+              <div className="flex gap-6">
+                <button className="py-3 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500">
+                  Thông tin
+                </button>
+                <button className="py-3 px-1 border-b-2 border-blue-600 text-sm font-medium text-blue-600">
+                  Mô tả
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Mô tả
+                </label>
+                <textarea
+                  value={descriptionForm.description}
+                  onChange={(e) =>
+                    setDescriptionForm({
+                      ...descriptionForm,
+                      description: e.target.value,
+                    })
+                  }
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                  placeholder="Đây là test"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Mẫu ghi chú (hóa đơn, đặt hàng)
+                </label>
+                <textarea
+                  value={descriptionForm.orderTemplate}
+                  onChange={(e) =>
+                    setDescriptionForm({
+                      ...descriptionForm,
+                      orderTemplate: e.target.value,
+                    })
+                  }
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                  placeholder="Đây cũng là test"
+                />
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="directSale"
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label
+                  htmlFor="directSale"
+                  className="ml-2 text-sm text-gray-700">
+                  Bán trực tiếp
+                </label>
+                <button className="ml-2 text-gray-400 hover:text-gray-600">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowDescriptionModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                Bỏ qua
+              </button>
+              <button
+                onClick={handleSaveDescription}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                Lưu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showCategoryModal && (
         <div className="fixed inset-0 bg-white bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50">
