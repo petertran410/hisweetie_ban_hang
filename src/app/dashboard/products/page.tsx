@@ -1,7 +1,7 @@
 "use client";
 
 import { JSX, useEffect, useState } from "react";
-import { productsAPI, categoriesAPI } from "../../../lib/api";
+import { productsAPI, categoriesAPI, tradeMarksAPI } from "../../../lib/api";
 import type { Product, Category } from "../../../types/index";
 
 interface ColumnConfig {
@@ -68,8 +68,20 @@ export default function ProductsPage() {
     null
   );
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  console.log(selectedProduct);
   const [activeTab, setActiveTab] = useState<string>("info");
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({
+    code: "",
+    name: "",
+    categoryId: undefined as number | undefined,
+    tradeMarkId: undefined as number | undefined,
+    purchasePrice: 0,
+    retailPrice: 0,
+    stockQuantity: 0,
+    minStockAlert: 0,
+  });
+  const [brands, setBrands] = useState<any[]>([]);
+  const [showCategorySelect, setShowCategorySelect] = useState(false);
 
   const [filters, setFilters] = useState({
     search: "",
@@ -110,6 +122,17 @@ export default function ProductsPage() {
 
   useEffect(() => {
     fetchCategories();
+
+    const fetchBrands = async () => {
+      try {
+        const response = await tradeMarksAPI.getAll();
+        setBrands(response.data.data || []);
+      } catch (error) {
+        console.error("Error fetching brands:", error);
+      }
+    };
+
+    fetchBrands();
   }, []);
 
   useEffect(() => {
@@ -207,6 +230,21 @@ export default function ProductsPage() {
     setShowDescriptionModal(true);
   };
 
+  const handleOpenEdit = () => {
+    if (!selectedProduct) return;
+    setEditForm({
+      code: selectedProduct.code || "",
+      name: selectedProduct.name || "",
+      categoryId: selectedProduct.categoryId,
+      tradeMarkId: selectedProduct.tradeMarkId,
+      purchasePrice: Number(selectedProduct.purchasePrice) || 0,
+      retailPrice: Number(selectedProduct.retailPrice) || 0,
+      stockQuantity: selectedProduct.stockQuantity || 0,
+      minStockAlert: selectedProduct.minStockAlert || 0,
+    });
+    setShowEditModal(true);
+  };
+
   const handleSaveDescription = async () => {
     if (!selectedProduct) return;
 
@@ -222,6 +260,30 @@ export default function ProductsPage() {
       fetchData();
     } catch (error) {
       console.error("Error updating description:", error);
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedProduct) return;
+
+    try {
+      await productsAPI.update(selectedProduct.id, {
+        code: editForm.code,
+        name: editForm.name,
+        categoryId: editForm.categoryId,
+        tradeMarkId: editForm.tradeMarkId,
+        purchasePrice: editForm.purchasePrice,
+        retailPrice: editForm.retailPrice,
+        stockQuantity: editForm.stockQuantity,
+        minStockAlert: editForm.minStockAlert,
+      });
+
+      const response = await productsAPI.getById(selectedProduct.id);
+      setSelectedProduct(response.data);
+      setShowEditModal(false);
+      fetchData();
+    } catch (error) {
+      console.error("Error updating product:", error);
     }
   };
 
@@ -756,7 +818,9 @@ export default function ProductsPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <button className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-md whitespace-nowrap">
+                  <button
+                    onClick={handleOpenEdit}
+                    className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-md whitespace-nowrap">
                     <svg
                       className="w-4 h-4"
                       fill="none"
@@ -1633,6 +1697,214 @@ export default function ProductsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {showEditModal && (
+        <div className="fixed inset-0 backdrop-brightness-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-[900px] max-w-90vw shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Chỉnh sửa sản phẩm
+              </h2>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="text-gray-400 hover:text-gray-600">
+                ✕
+              </button>
+            </div>
+
+            <div className="border-b border-gray-200 mb-4">
+              <div className="flex gap-6">
+                <button className="py-3 px-1 border-b-2 border-blue-600 text-sm font-medium text-blue-600">
+                  Thông tin
+                </button>
+                <button className="py-3 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500">
+                  Mô tả
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Mã hàng
+                </label>
+                <input
+                  type="text"
+                  value={editForm.code}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, code: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-black"
+                />
+              </div>
+
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tên hàng
+                </label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, name: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-black"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nhóm hàng
+                </label>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowCategorySelect(!showCategorySelect)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-left bg-white hover:bg-gray-50 flex items-center justify-between text-black">
+                    <span>
+                      {categories.find((c) => c.id === editForm.categoryId)
+                        ?.name || "Chọn nhóm hàng (Bắt buộc)"}
+                    </span>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+
+                  {showCategorySelect && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+                      <div className="p-2">
+                        <input
+                          type="text"
+                          placeholder="Tìm kiếm"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-black mb-2"
+                        />
+                      </div>
+                      {renderCategoryTree(hierarchicalCategories).map(
+                        (item, index) => (
+                          <div key={index}>{item}</div>
+                        )
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Thương hiệu
+                </label>
+                <select
+                  value={editForm.tradeMarkId || ""}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      tradeMarkId: e.target.value
+                        ? Number(e.target.value)
+                        : undefined,
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-black">
+                  <option value="">Chọn thương hiệu</option>
+                  {brands.map((brand) => (
+                    <option key={brand.id} value={brand.id}>
+                      {brand.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Giá vốn
+                </label>
+                <input
+                  type="number"
+                  value={editForm.purchasePrice}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      purchasePrice: Number(e.target.value),
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-black"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Giá bán
+                </label>
+                <input
+                  type="number"
+                  value={editForm.retailPrice}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      retailPrice: Number(e.target.value),
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-black"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tồn kho
+                </label>
+                <input
+                  type="number"
+                  value={editForm.stockQuantity}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      stockQuantity: Number(e.target.value),
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-black"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Định mức tồn thấp nhất
+                </label>
+                <input
+                  type="number"
+                  value={editForm.minStockAlert}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      minStockAlert: Number(e.target.value),
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-black"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                Bỏ qua
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                Lưu
+              </button>
+            </div>
           </div>
         </div>
       )}

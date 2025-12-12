@@ -218,4 +218,13 @@ export const uploadAPI = {
   delete: (filename: string) => apiClient.delete(`/upload/${filename}`),
 };
 
+export const tradeMarksAPI = {
+  getAll: () => apiClient.get("/trademarks"),
+  getById: (id: number) => apiClient.get(`/trademarks/${id}`),
+  create: (data: { name: string; description?: string }) =>
+    apiClient.post("/trademarks", data),
+  update: (id: number, data: any) => apiClient.put(`/trademarks/${id}`, data),
+  delete: (id: number) => apiClient.delete(`/trademarks/${id}`),
+};
+
 export default apiClient;
