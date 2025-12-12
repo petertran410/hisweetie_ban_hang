@@ -126,7 +126,7 @@ export default function ProductsPage() {
     const fetchBrands = async () => {
       try {
         const response = await tradeMarksAPI.getAll();
-        setBrands(response.data.data || []);
+        setBrands(response.data || []);
       } catch (error) {
         console.error("Error fetching brands:", error);
       }
