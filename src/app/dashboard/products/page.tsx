@@ -1,6 +1,6 @@
 "use client";
 
-import { JSX, useEffect, useState } from "react";
+import { JSX, useEffect, useState, Fragment } from "react";
 import { productsAPI, categoriesAPI, tradeMarksAPI } from "../../../lib/api";
 import type { Product, Category } from "../../../types/index";
 
@@ -1301,9 +1301,8 @@ export default function ProductsPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {products.map((product) => (
-                    <>
+                    <Fragment key={product.id}>
                       <tr
-                        key={product.id}
                         onClick={() => handleProductClick(product.id)}
                         className={`hover:bg-gray-50 cursor-pointer ${
                           expandedProductId === product.id ? "bg-blue-50" : ""
@@ -1318,7 +1317,7 @@ export default function ProductsPage() {
                       </tr>
                       {expandedProductId === product.id &&
                         renderProductDetail()}
-                    </>
+                    </Fragment>
                   ))}
                 </tbody>
               </table>
