@@ -33,6 +33,7 @@ export interface Product {
   slug: string;
   categoryId?: number;
   category?: Category;
+  tradeMarkId?: number;
   variantId?: number;
   variant?: ProductVariant;
   purchasePrice: number;
@@ -40,6 +41,7 @@ export interface Product {
   collaboratorPrice: number;
   stockQuantity: number;
   minStockAlert: number;
+  maxStockAlert: number;
   weight?: number;
   image?: string;
   description?: string;
@@ -47,6 +49,7 @@ export interface Product {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  allowsSale: boolean;
 }
 
 export interface Category {
