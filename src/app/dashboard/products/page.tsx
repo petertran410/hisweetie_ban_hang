@@ -13,13 +13,14 @@ interface ColumnConfig {
 const DEFAULT_COLUMNS: ColumnConfig[] = [
   { key: "code", label: "Mã hàng", visible: true },
   { key: "name", label: "Tên hàng", visible: true },
+  { key: "fullName", label: "Tên đầy đủ", visible: true },
   { key: "category", label: "Nhóm hàng", visible: true },
   { key: "variant", label: "Loại hàng", visible: true },
   { key: "retailPrice", label: "Giá bán", visible: true },
   { key: "purchasePrice", label: "Giá vốn", visible: true },
   { key: "stockQuantity", label: "Tồn kho", visible: true },
   { key: "minStockAlert", label: "Tồn kho tối thiểu", visible: true },
-  { key: "weight", label: "Trọng lượng", visible: true },
+  { key: "weight", label: "Trọng lượng", visible: false },
   { key: "createdAt", label: "Thời gian tạo", visible: false },
   { key: "updatedAt", label: "Thời gian cập nhật", visible: false },
   { key: "isActive", label: "Trạng thái", visible: false },
@@ -73,6 +74,7 @@ export default function ProductsPage() {
   const [editForm, setEditForm] = useState({
     code: "",
     name: "",
+    fullName: "",
     categoryId: undefined as number | undefined,
     tradeMarkId: undefined as number | undefined,
     purchasePrice: 0,
@@ -235,6 +237,7 @@ export default function ProductsPage() {
     setEditForm({
       code: selectedProduct.code || "",
       name: selectedProduct.name || "",
+      fullName: selectedProduct.fullName || "",
       categoryId: selectedProduct.categoryId,
       tradeMarkId: selectedProduct.tradeMarkId,
       purchasePrice: Number(selectedProduct.purchasePrice) || 0,
@@ -270,6 +273,7 @@ export default function ProductsPage() {
       await productsAPI.update(selectedProduct.id, {
         code: editForm.code,
         name: editForm.name,
+        fullName: editForm.fullName,
         categoryId: editForm.categoryId,
         tradeMarkId: editForm.tradeMarkId,
         purchasePrice: editForm.purchasePrice,
@@ -394,6 +398,14 @@ export default function ProductsPage() {
     );
   };
 
+  const handleSelectCategoryForEdit = (categoryId: number) => {
+    setEditForm({
+      ...editForm,
+      categoryId: categoryId,
+    });
+    setShowCategorySelect(false);
+  };
+
   const selectAllCategories = () => {
     setSelectedCategories(categories.map((cat) => cat.id));
   };
@@ -513,6 +525,62 @@ export default function ProductsPage() {
     });
   };
 
+  const renderCategoryTreeForEdit = (categories: Category[], level = 0) => {
+    return categories.map((category) => {
+      const hasChildren = category.children && category.children.length > 0;
+      const isExpanded = expandedCategories.includes(category.id);
+      const isSelected = editForm.categoryId === category.id;
+
+      return (
+        <div key={category.id}>
+          <div
+            onClick={() => handleSelectCategoryForEdit(category.id)}
+            className={`flex items-center py-2 px-3 hover:bg-gray-100 cursor-pointer ${
+              isSelected ? "bg-blue-50" : ""
+            }`}
+            style={{ paddingLeft: `${level * 16 + 12}px` }}>
+            <div className="w-4 h-4 flex items-center justify-center mr-2">
+              {hasChildren ? (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleCategoryExpand(category.id);
+                  }}
+                  className="text-gray-400 hover:text-gray-600">
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d={isExpanded ? "M19 9l-7 7-7-7" : "M9 5l7 7-7 7"}
+                    />
+                  </svg>
+                </button>
+              ) : (
+                <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
+              )}
+            </div>
+            <span
+              className={`text-sm ${
+                isSelected ? "text-blue-600 font-medium" : "text-gray-700"
+              }`}>
+              {category.name}
+            </span>
+          </div>
+          {hasChildren && isExpanded && (
+            <div>
+              {renderCategoryTreeForEdit(category.children || [], level + 1)}
+            </div>
+          )}
+        </div>
+      );
+    });
+  };
+
   const toggleColumn = (key: string) => {
     setColumns(
       columns.map((col) =>
@@ -529,6 +597,8 @@ export default function ProductsPage() {
         return product.code;
       case "name":
         return product.name;
+      case "fullName":
+        return product.fullName;
       case "category":
         return product.category?.name || "-";
       case "variant":
@@ -1753,6 +1823,20 @@ export default function ProductsPage() {
                 />
               </div>
 
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tên đầy đủ
+                </label>
+                <input
+                  type="text"
+                  value={editForm.fullName}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, fullName: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-black"
+                />
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Nhóm hàng
@@ -1782,18 +1866,7 @@ export default function ProductsPage() {
 
                   {showCategorySelect && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
-                      <div className="p-2">
-                        <input
-                          type="text"
-                          placeholder="Tìm kiếm"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-black mb-2"
-                        />
-                      </div>
-                      {renderCategoryTree(hierarchicalCategories).map(
-                        (item, index) => (
-                          <div key={index}>{item}</div>
-                        )
-                      )}
+                      {renderCategoryTreeForEdit(hierarchicalCategories)}
                     </div>
                   )}
                 </div>

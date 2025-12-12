@@ -30,6 +30,7 @@ export interface Product {
   id: number;
   code: string;
   name: string;
+  fullName?: string;
   slug: string;
   categoryId?: number;
   category?: Category;
