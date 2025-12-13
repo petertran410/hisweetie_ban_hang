@@ -96,6 +96,11 @@ export default function ProductsPage() {
     ProductAttributeItem[]
   >([]);
   const [newAttribute, setNewAttribute] = useState({ name: "", value: "" });
+  const [showAddUnitModal, setShowAddUnitModal] = useState(false);
+  const [editingUnit, setEditingUnit] = useState<{
+    name: string;
+    allowsSale: boolean;
+  } | null>(null);
   const [brands, setBrands] = useState<any[]>([]);
   const [showCategorySelect, setShowCategorySelect] = useState(false);
 
@@ -169,6 +174,34 @@ export default function ProductsPage() {
       ...prev,
       attributesText: serializeAttributes(updatedAttrs),
     }));
+  };
+
+  const handleEditUnit = () => {
+    setEditingUnit({
+      name: editForm.unit || "Thùng",
+      allowsSale: true,
+    });
+    setShowAddUnitModal(true);
+  };
+
+  const handleSaveUnit = () => {
+    if (editingUnit) {
+      setEditForm({
+        ...editForm,
+        unit: editingUnit.name,
+      });
+    }
+    setShowAddUnitModal(false);
+    setEditingUnit(null);
+  };
+
+  const handleDeleteUnit = () => {
+    setEditForm({
+      ...editForm,
+      unit: "",
+    });
+    setShowAddUnitModal(false);
+    setEditingUnit(null);
   };
 
   useEffect(() => {
@@ -1033,7 +1066,7 @@ export default function ProductsPage() {
         <div className="bg-white rounded-lg shadow p-2">
           <h3 className="font-semibold text-gray-900 mb-4">Bộ lọc</h3>
 
-          <div className="mb-4 relative">
+          <div className="mb-4 relative text-gray-700">
             <div className="flex justify-between items-center mb-2">
               <label className="block text-sm font-medium text-gray-700">
                 Nhóm hàng
@@ -1044,11 +1077,11 @@ export default function ProductsPage() {
                 + Tạo mới
               </button>
             </div>
-            <div className="category-dropdown relative">
+            <div className="category-dropdown relative text-gray-700">
               <button
                 onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-left bg-white hover:bg-gray-50 flex items-center justify-between">
-                <span className="text-gray-500">Chọn nhóm hàng</span>
+                <span>Chọn nhóm hàng</span>
                 <svg
                   className="w-4 h-4"
                   fill="none"
@@ -1116,7 +1149,7 @@ export default function ProductsPage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Tồn kho
             </label>
-            <div className="stock-dropdown relative">
+            <div className="stock-dropdown relative text-gray-700">
               <button
                 onClick={() => setShowStockDropdown(!showStockDropdown)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-left bg-white hover:bg-gray-50 flex items-center justify-between">
@@ -1171,7 +1204,7 @@ export default function ProductsPage() {
             </div>
           </div>
 
-          <div className="mb-4">
+          <div className="mb-4 text-gray-700">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Kho hàng
             </label>
@@ -1227,7 +1260,7 @@ export default function ProductsPage() {
             </div>
           </div>
 
-          <div className="mb-4">
+          <div className="mb-4 text-gray-700">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Thuộc tính
             </label>
@@ -1238,7 +1271,7 @@ export default function ProductsPage() {
             />
           </div>
 
-          <div className="mb-4">
+          <div className="mb-4 text-gray-700">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Nhà cung cấp
             </label>
@@ -1247,7 +1280,7 @@ export default function ProductsPage() {
             </select>
           </div>
 
-          <div className="mb-4">
+          <div className="mb-4 text-gray-700">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Thương hiệu
             </label>
@@ -1256,16 +1289,7 @@ export default function ProductsPage() {
             </select>
           </div>
 
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Vị trí
-            </label>
-            <select className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="">Chọn vị trí</option>
-            </select>
-          </div>
-
-          <div className="mb-4">
+          <div className="mb-4 text-gray-700">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Loại hàng
             </label>
@@ -1345,7 +1369,7 @@ export default function ProductsPage() {
             </div>
           </div>
 
-          <div className="mb-4">
+          <div className="mb-4 text-gray-700">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Trạng thái hàng hóa
             </label>
@@ -2026,6 +2050,84 @@ export default function ProductsPage() {
               </div>
             </div>
 
+            <div className="col-span-2 border-t pt-4 mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Vị trí, trọng lượng
+              </label>
+              <p className="text-xs text-gray-500 mb-3">
+                Quản lý việc sắp xếp kho, vị trí bán hàng hoặc trọng lượng hàng
+                hóa
+              </p>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">
+                    Trọng lượng
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editForm.weight || ""}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          weight: Number(e.target.value),
+                        })
+                      }
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-black"
+                      placeholder="123"
+                    />
+                    <select
+                      value={editForm.weightUnit}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          weightUnit: e.target.value,
+                        })
+                      }
+                      className="w-20 px-2 py-2 border border-gray-300 rounded-md text-black">
+                      <option value="kg">kg</option>
+                      <option value="g">g</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-span-2 border-t pt-4 mt-4">
+              <div className="flex justify-between items-center mb-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Quản lý theo đơn vị tính và thuộc tính
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Hàng hóa được tạo ra từ {editForm.unit || "Thùng"}
+                    {productAttributes.length > 0 &&
+                      ` và ${productAttributes.length} thuộc tính`}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowUnitModal(true)}
+                  className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                  Xem chi tiết
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
             <div className="flex justify-end space-x-3 mt-6">
               <button
                 onClick={() => setShowEditModal(false)}
@@ -2099,6 +2201,7 @@ export default function ProductsPage() {
                   </div>
                   <button
                     type="button"
+                    onClick={handleEditUnit}
                     className="text-blue-600 hover:text-blue-700">
                     <svg
                       className="w-5 h-5"
@@ -2165,8 +2268,7 @@ export default function ProductsPage() {
                 </div>
               )}
 
-              {/* Form thêm thuộc tính mới */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 text-black">
                 <input
                   type="text"
                   value={newAttribute.name}
@@ -2221,6 +2323,88 @@ export default function ProductsPage() {
                 className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
                 Xong
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAddUnitModal && editingUnit && (
+        <div className="fixed inset-0 backdrop-brightness-50 flex items-center justify-center z-70">
+          <div className="bg-white rounded-lg p-6 w-[500px] max-w-90vw shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Thêm đơn vị cơ bản
+              </h2>
+              <button
+                onClick={() => {
+                  setShowAddUnitModal(false);
+                  setEditingUnit(null);
+                }}
+                className="text-gray-400 hover:text-gray-600">
+                ✕
+              </button>
+            </div>
+
+            <p className="text-sm text-gray-500 mb-4">
+              Đơn vị cơ bản là đơn vị bán phổ biến nhất hoặc đơn vị chính dùng
+              để quản lý tồn kho
+            </p>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tên đơn vị cơ bản
+                </label>
+                <input
+                  type="text"
+                  value={editingUnit.name}
+                  onChange={(e) =>
+                    setEditingUnit({ ...editingUnit, name: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="VD: Hộp, Thùng, Chai..."
+                />
+              </div>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex items-center justify-between border-t pt-4">
+              <button
+                type="button"
+                onClick={handleDeleteUnit}
+                className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md">
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+                Xóa đơn vị
+              </button>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddUnitModal(false);
+                    setEditingUnit(null);
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                  Bỏ qua
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveUnit}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                  Xong
+                </button>
+              </div>
             </div>
           </div>
         </div>
