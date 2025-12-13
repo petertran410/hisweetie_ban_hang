@@ -749,7 +749,7 @@ export default function ProductsPage() {
                           <div className="font-medium text-gray-900">
                             {Number(
                               selectedProduct.purchasePrice
-                            ).toLocaleString("vi-VN")}{" "}
+                            ).toLocaleString("en-US")}{" "}
                             ₫
                           </div>
                         </div>
@@ -757,7 +757,7 @@ export default function ProductsPage() {
                           <div className="text-sm text-gray-500">Giá bán</div>
                           <div className="font-medium text-gray-900">
                             {Number(selectedProduct.retailPrice).toLocaleString(
-                              "vi-VN"
+                              "en-US"
                             )}{" "}
                             ₫
                           </div>
@@ -1787,9 +1787,6 @@ export default function ProductsPage() {
               <div className="flex gap-6">
                 <button className="py-3 px-1 border-b-2 border-blue-600 text-sm font-medium text-blue-600">
                   Thông tin
-                </button>
-                <button className="py-3 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500">
-                  Mô tả
                 </button>
               </div>
             </div>
