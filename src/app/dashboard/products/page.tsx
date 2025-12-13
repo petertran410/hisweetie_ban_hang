@@ -2,7 +2,11 @@
 
 import { JSX, useEffect, useState, Fragment } from "react";
 import { productsAPI, categoriesAPI, tradeMarksAPI } from "../../../lib/api";
-import type { Product, Category } from "../../../types/index";
+import type {
+  Product,
+  Category,
+  ProductAttributeItem,
+} from "../../../types/index";
 
 interface ColumnConfig {
   key: string;
@@ -81,7 +85,17 @@ export default function ProductsPage() {
     retailPrice: 0,
     stockQuantity: 0,
     minStockAlert: 0,
+    weight: 0,
+    weightUnit: "kg",
+    unit: "",
+    attributesText: "",
   });
+
+  const [showUnitModal, setShowUnitModal] = useState(false);
+  const [productAttributes, setProductAttributes] = useState<
+    ProductAttributeItem[]
+  >([]);
+  const [newAttribute, setNewAttribute] = useState({ name: "", value: "" });
   const [brands, setBrands] = useState<any[]>([]);
   const [showCategorySelect, setShowCategorySelect] = useState(false);
 
@@ -117,6 +131,45 @@ export default function ProductsPage() {
     }
     return DEFAULT_COLUMNS;
   });
+
+  const parseAttributesText = (text: string): ProductAttributeItem[] => {
+    if (!text) return [];
+    return text.split("|").map((attr) => {
+      const [name, value] = attr.split(":");
+      return { name: name?.trim() || "", value: value?.trim() || "" };
+    });
+  };
+
+  const serializeAttributes = (attrs: ProductAttributeItem[]): string => {
+    return attrs
+      .filter((attr) => attr.name && attr.value)
+      .map((attr) => `${attr.name}:${attr.value}`)
+      .join("|");
+  };
+
+  const handleAddAttribute = () => {
+    if (!newAttribute.name || !newAttribute.value) return;
+
+    const updatedAttrs = [...productAttributes, newAttribute];
+    setProductAttributes(updatedAttrs);
+
+    setEditForm((prev) => ({
+      ...prev,
+      attributesText: serializeAttributes(updatedAttrs),
+    }));
+
+    setNewAttribute({ name: "", value: "" });
+  };
+
+  const handleRemoveAttribute = (index: number) => {
+    const updatedAttrs = productAttributes.filter((_, i) => i !== index);
+    setProductAttributes(updatedAttrs);
+
+    setEditForm((prev) => ({
+      ...prev,
+      attributesText: serializeAttributes(updatedAttrs),
+    }));
+  };
 
   useEffect(() => {
     fetchData();
@@ -234,6 +287,10 @@ export default function ProductsPage() {
 
   const handleOpenEdit = () => {
     if (!selectedProduct) return;
+
+    const attrs = parseAttributesText(selectedProduct.attributesText || "");
+    setProductAttributes(attrs);
+
     setEditForm({
       code: selectedProduct.code || "",
       name: selectedProduct.name || "",
@@ -244,6 +301,10 @@ export default function ProductsPage() {
       retailPrice: Number(selectedProduct.retailPrice) || 0,
       stockQuantity: selectedProduct.stockQuantity || 0,
       minStockAlert: selectedProduct.minStockAlert || 0,
+      weight: Number(selectedProduct.weight) || 0,
+      weightUnit: selectedProduct.weightUnit || "kg",
+      unit: selectedProduct.unit || "",
+      attributesText: selectedProduct.attributesText || "",
     });
     setShowEditModal(true);
   };
@@ -273,13 +334,16 @@ export default function ProductsPage() {
       await productsAPI.update(selectedProduct.id, {
         code: editForm.code,
         name: editForm.name,
-        fullName: editForm.fullName,
         categoryId: editForm.categoryId,
         tradeMarkId: editForm.tradeMarkId,
         purchasePrice: editForm.purchasePrice,
         retailPrice: editForm.retailPrice,
         stockQuantity: editForm.stockQuantity,
         minStockAlert: editForm.minStockAlert,
+        weight: editForm.weight,
+        weightUnit: editForm.weightUnit,
+        unit: editForm.unit,
+        attributesText: editForm.attributesText,
       });
 
       const response = await productsAPI.getById(selectedProduct.id);
@@ -1972,6 +2036,190 @@ export default function ProductsPage() {
                 onClick={handleSaveEdit}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
                 Lưu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showUnitModal && (
+        <div className="fixed inset-0 backdrop-brightness-50 flex items-center justify-center z-60">
+          <div className="bg-white rounded-lg p-6 w-[650px] max-w-90vw shadow-xl max-h-[85vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Thiết lập đơn vị tính và thuộc tính
+              </h2>
+              <button
+                onClick={() => setShowUnitModal(false)}
+                className="text-gray-400 hover:text-gray-600">
+                ✕
+              </button>
+            </div>
+
+            {/* ĐƠN VỊ TÍNH */}
+            <div className="mb-6 pb-6 border-b">
+              <div className="flex justify-between items-center mb-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  Đơn vị tính
+                </label>
+                <button
+                  type="button"
+                  className="text-blue-600 text-sm flex items-center gap-1 hover:text-blue-700">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  Thêm đơn vị
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mb-3">
+                Thêm đơn vị bán hoặc nhập như chai, lốc, thùng. Đặt công thức
+                quy đổi để tính nhanh giá trị và tồn kho. Ví dụ: 1 lốc = 4 chai,
+                1 thùng = 20 lốc.
+              </p>
+
+              {/* Hiển thị đơn vị cơ bản */}
+              <div className="border-2 border-blue-500 rounded-lg p-3 bg-blue-50">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {editForm.unit || "Thùng"} (Đơn vị cơ bản)
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      • Bán trực tiếp
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="text-blue-600 hover:text-blue-700">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* THUỘC TÍNH */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  Thuộc tính
+                </label>
+              </div>
+              <p className="text-xs text-gray-500 mb-3">
+                Thêm đặc điểm như hương vị, dung tích, màu sắc
+              </p>
+
+              {/* Danh sách thuộc tính hiện tại */}
+              {productAttributes.length > 0 && (
+                <div className="space-y-2 mb-3">
+                  {productAttributes.map((attr, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 bg-gray-50 p-2 rounded border">
+                      <div className="flex-1 grid grid-cols-2 gap-2">
+                        <div className="text-sm font-medium text-gray-700">
+                          {attr.name}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {attr.value}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveAttribute(index)}
+                        className="text-red-500 hover:text-red-700">
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Form thêm thuộc tính mới */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newAttribute.name}
+                  onChange={(e) =>
+                    setNewAttribute({ ...newAttribute, name: e.target.value })
+                  }
+                  placeholder="Tên thuộc tính (VD: Vị, Loại, Màu...)"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                />
+
+                <input
+                  type="text"
+                  value={newAttribute.value}
+                  onChange={(e) =>
+                    setNewAttribute({ ...newAttribute, value: e.target.value })
+                  }
+                  placeholder="Giá trị thuộc tính"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                />
+
+                <button
+                  type="button"
+                  onClick={handleAddAttribute}
+                  disabled={!newAttribute.name || !newAttribute.value}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
+                  + Thêm
+                </button>
+              </div>
+
+              {productAttributes.length > 0 && (
+                <div className="mt-3 p-3 bg-blue-50 rounded border border-blue-200">
+                  <p className="text-xs text-gray-600">
+                    <strong>Tên đầy đủ sẽ là:</strong> {editForm.name}
+                    {productAttributes
+                      .map((attr) => ` - ${attr.value}`)
+                      .join("")}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end space-x-3 border-t pt-4">
+              <button
+                type="button"
+                onClick={() => setShowUnitModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                Bỏ qua
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowUnitModal(false)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                Xong
               </button>
             </div>
           </div>

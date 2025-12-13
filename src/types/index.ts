@@ -44,6 +44,12 @@ export interface Product {
   minStockAlert: number;
   maxStockAlert: number;
   weight?: number;
+  weightUnit?: string;
+  unit?: string;
+  conversionValue?: number;
+  masterProductId?: number;
+  masterUnitId?: number;
+  attributesText?: string;
   image?: string;
   description?: string;
   orderTemplate?: string;
@@ -51,6 +57,11 @@ export interface Product {
   createdAt: string;
   updatedAt: string;
   allowsSale: boolean;
+}
+
+export interface ProductAttributeItem {
+  name: string;
+  value: string;
 }
 
 export interface Category {
