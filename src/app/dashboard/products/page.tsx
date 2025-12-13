@@ -1,7 +1,12 @@
 "use client";
 
 import { JSX, useEffect, useState, Fragment } from "react";
-import { productsAPI, categoriesAPI, tradeMarksAPI } from "../../../lib/api";
+import {
+  productsAPI,
+  categoriesAPI,
+  tradeMarksAPI,
+  uploadAPI,
+} from "../../../lib/api";
 import type {
   Product,
   Category,
@@ -103,6 +108,8 @@ export default function ProductsPage() {
   } | null>(null);
   const [brands, setBrands] = useState<any[]>([]);
   const [showCategorySelect, setShowCategorySelect] = useState(false);
+  const [productImages, setProductImages] = useState<string[]>([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const [filters, setFilters] = useState({
     search: "",
@@ -324,6 +331,10 @@ export default function ProductsPage() {
     const attrs = parseAttributesText(selectedProduct.attributesText || "");
     setProductAttributes(attrs);
 
+    setProductImages(
+      selectedProduct.images?.map((img: any) => img.image) || []
+    );
+
     setEditForm({
       code: selectedProduct.code || "",
       name: selectedProduct.name || "",
@@ -340,6 +351,40 @@ export default function ProductsPage() {
       attributesText: selectedProduct.attributesText || "",
     });
     setShowEditModal(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (
+      !["image/jpeg", "image/png", "image/jpg", "image/webp"].includes(
+        file.type
+      )
+    ) {
+      alert("Chỉ chấp nhận file ảnh");
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Kích thước ảnh không quá 2MB");
+      return;
+    }
+
+    try {
+      setUploadingImage(true);
+      const response = await uploadAPI.image(file);
+      setProductImages([...productImages, response.data.url]);
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      alert("Upload ảnh thất bại");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setProductImages(productImages.filter((_, i) => i !== index));
   };
 
   const handleSaveDescription = async () => {
@@ -377,6 +422,7 @@ export default function ProductsPage() {
         weightUnit: editForm.weightUnit,
         unit: editForm.unit,
         attributesText: editForm.attributesText,
+        imageUrls: productImages,
       });
 
       const response = await productsAPI.getById(selectedProduct.id);
@@ -1266,7 +1312,7 @@ export default function ProductsPage() {
             </label>
             <input
               type="text"
-              placeholder="Ví"
+              placeholder="Vị"
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -1920,6 +1966,96 @@ export default function ProductsPage() {
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-black"
                 />
+              </div>
+
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Hình ảnh sản phẩm
+                </label>
+
+                <div className="flex items-start gap-2">
+                  <div className="flex flex-wrap gap-2 flex-1">
+                    {productImages.map((url, index) => (
+                      <div
+                        key={index}
+                        className="relative w-16 h-16 border rounded overflow-hidden group">
+                        <img
+                          src={url}
+                          alt={`Product ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(index)}
+                          className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <svg
+                            className="w-5 h-5 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+
+                    <label className="w-16 h-16 border-2 border-dashed border-gray-300 rounded flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        disabled={uploadingImage}
+                        className="hidden"
+                      />
+                      {uploadingImage ? (
+                        <div className="flex flex-col items-center">
+                          <svg
+                            className="animate-spin h-4 w-4 text-blue-600"
+                            fill="none"
+                            viewBox="0 0 24 24">
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
+                          </svg>
+                        </div>
+                      ) : (
+                        <svg
+                          className="w-5 h-5 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 4v16m8-8H4"
+                          />
+                        </svg>
+                      )}
+                    </label>
+                  </div>
+                </div>
+
+                {productImages.length === 0 && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Mỗi ảnh không quá 2 MB
+                  </p>
+                )}
               </div>
 
               <div>

@@ -51,12 +51,20 @@ export interface Product {
   masterUnitId?: number;
   attributesText?: string;
   image?: string;
+  images?: ProductImage[];
   description?: string;
   orderTemplate?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
   allowsSale: boolean;
+}
+
+export interface ProductImage {
+  id: number;
+  productId: number;
+  image: string;
+  createdAt: string;
 }
 
 export interface ProductAttributeItem {
