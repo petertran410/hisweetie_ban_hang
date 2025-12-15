@@ -366,7 +366,7 @@ export default function ProductsPage() {
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
+    if (file.size > 20 * 1024 * 1024) {
       alert("Kích thước ảnh không quá 2MB");
       return;
     }
@@ -2053,7 +2053,7 @@ export default function ProductsPage() {
 
                 {productImages.length === 0 && (
                   <p className="text-xs text-gray-500 mt-1">
-                    Mỗi ảnh không quá 2 MB
+                    Mỗi ảnh không quá 20 MB
                   </p>
                 )}
               </div>
@@ -2433,17 +2433,6 @@ export default function ProductsPage() {
                   + Thêm
                 </button>
               </div>
-
-              {productAttributes.length > 0 && (
-                <div className="mt-3 p-3 bg-blue-50 rounded border border-blue-200">
-                  <p className="text-xs text-gray-600">
-                    <strong>Tên đầy đủ sẽ là:</strong> {editForm.name}
-                    {productAttributes
-                      .map((attr) => ` - ${attr.value}`)
-                      .join("")}
-                  </p>
-                </div>
-              )}
             </div>
 
             <div className="flex justify-end space-x-3 border-t pt-4">
@@ -2503,7 +2492,6 @@ export default function ProductsPage() {
               </div>
             </div>
 
-            {/* Buttons */}
             <div className="flex items-center justify-between border-t pt-4">
               <button
                 type="button"
