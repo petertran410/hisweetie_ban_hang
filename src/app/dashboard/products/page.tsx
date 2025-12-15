@@ -438,10 +438,20 @@ export default function ProductsPage() {
   const handleSaveEdit = async () => {
     try {
       if (isCreateMode) {
+        const slug = editForm.code
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/đ/g, "d")
+          .replace(/[^a-z0-9\s-]/g, "")
+          .replace(/\s+/g, "-")
+          .replace(/-+/g, "-")
+          .trim();
+
         await productsAPI.create({
           code: editForm.code,
           name: editForm.name,
-          slug: editForm.code.toLowerCase().replace(/\s+/g, "-"),
+          slug: slug,
           categoryId: editForm.categoryId,
           tradeMarkId: editForm.tradeMarkId,
           purchasePrice: editForm.purchasePrice,
@@ -458,9 +468,20 @@ export default function ProductsPage() {
       } else {
         if (!selectedProduct) return;
 
+        const slug = editForm.code
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/đ/g, "d")
+          .replace(/[^a-z0-9\s-]/g, "")
+          .replace(/\s+/g, "-")
+          .replace(/-+/g, "-")
+          .trim();
+
         await productsAPI.update(selectedProduct.id, {
           code: editForm.code,
           name: editForm.name,
+          slug: slug,
           categoryId: editForm.categoryId,
           tradeMarkId: editForm.tradeMarkId,
           purchasePrice: editForm.purchasePrice,
