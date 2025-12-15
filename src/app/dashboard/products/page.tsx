@@ -50,6 +50,10 @@ const LIMIT_OPTIONS = [15, 20, 30, 50, 100];
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [imageLoadErrors, setImageLoadErrors] = useState<Set<number>>(
+    new Set()
+  );
+  const [isCreateMode, setIsCreateMode] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
@@ -326,6 +330,7 @@ export default function ProductsPage() {
   };
 
   const handleOpenEdit = () => {
+    setIsCreateMode(false);
     if (!selectedProduct) return;
 
     const attrs = parseAttributesText(selectedProduct.attributesText || "");
@@ -350,6 +355,31 @@ export default function ProductsPage() {
       unit: selectedProduct.unit || "",
       attributesText: selectedProduct.attributesText || "",
     });
+    setShowEditModal(true);
+  };
+
+  const handleOpenCreate = () => {
+    setIsCreateMode(true);
+    setSelectedProduct(null);
+    setProductAttributes([]);
+    setProductImages([]);
+
+    setEditForm({
+      code: "",
+      name: "",
+      fullName: "",
+      categoryId: undefined,
+      tradeMarkId: undefined,
+      purchasePrice: 0,
+      retailPrice: 0,
+      stockQuantity: 0,
+      minStockAlert: 0,
+      weight: 0,
+      weightUnit: "kg",
+      unit: "",
+      attributesText: "",
+    });
+
     setShowEditModal(true);
   };
 
@@ -406,31 +436,50 @@ export default function ProductsPage() {
   };
 
   const handleSaveEdit = async () => {
-    if (!selectedProduct) return;
-
     try {
-      await productsAPI.update(selectedProduct.id, {
-        code: editForm.code,
-        name: editForm.name,
-        categoryId: editForm.categoryId,
-        tradeMarkId: editForm.tradeMarkId,
-        purchasePrice: editForm.purchasePrice,
-        retailPrice: editForm.retailPrice,
-        stockQuantity: editForm.stockQuantity,
-        minStockAlert: editForm.minStockAlert,
-        weight: editForm.weight,
-        weightUnit: editForm.weightUnit,
-        unit: editForm.unit,
-        attributesText: editForm.attributesText,
-        imageUrls: productImages,
-      });
+      if (isCreateMode) {
+        await productsAPI.create({
+          code: editForm.code,
+          name: editForm.name,
+          slug: editForm.code.toLowerCase().replace(/\s+/g, "-"),
+          categoryId: editForm.categoryId,
+          tradeMarkId: editForm.tradeMarkId,
+          purchasePrice: editForm.purchasePrice,
+          retailPrice: editForm.retailPrice,
+          collaboratorPrice: editForm.retailPrice,
+          stockQuantity: editForm.stockQuantity,
+          minStockAlert: editForm.minStockAlert,
+          weight: editForm.weight,
+          weightUnit: editForm.weightUnit,
+          unit: editForm.unit,
+          attributesText: editForm.attributesText,
+          imageUrls: productImages,
+        });
+      } else {
+        if (!selectedProduct) return;
 
-      const response = await productsAPI.getById(selectedProduct.id);
-      setSelectedProduct(response.data);
+        await productsAPI.update(selectedProduct.id, {
+          code: editForm.code,
+          name: editForm.name,
+          categoryId: editForm.categoryId,
+          tradeMarkId: editForm.tradeMarkId,
+          purchasePrice: editForm.purchasePrice,
+          retailPrice: editForm.retailPrice,
+          stockQuantity: editForm.stockQuantity,
+          minStockAlert: editForm.minStockAlert,
+          weight: editForm.weight,
+          weightUnit: editForm.weightUnit,
+          unit: editForm.unit,
+          attributesText: editForm.attributesText,
+          imageUrls: productImages,
+        });
+      }
+
       setShowEditModal(false);
+      setIsCreateMode(false);
       fetchData();
     } catch (error) {
-      console.error("Error updating product:", error);
+      console.error("Error saving product:", error);
     }
   };
 
@@ -1013,21 +1062,6 @@ export default function ProductsPage() {
                     </svg>
                     Xóa
                   </button>
-                  <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md whitespace-nowrap">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                      />
-                    </svg>
-                    Sao chép
-                  </button>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -1478,7 +1512,9 @@ export default function ProductsPage() {
                 </div>
               )}
             </div>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+            <button
+              onClick={handleOpenCreate}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
               Thêm hàng hóa
             </button>
           </div>
@@ -1908,10 +1944,13 @@ export default function ProductsPage() {
           <div className="bg-white rounded-lg p-6 w-[900px] max-w-90vw shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-gray-900">
-                Chỉnh sửa sản phẩm
+                {isCreateMode ? "Thêm hàng hóa" : "Chỉnh sửa sản phẩm"}
               </h2>
               <button
-                onClick={() => setShowEditModal(false)}
+                onClick={() => {
+                  setShowEditModal(false);
+                  setIsCreateMode(false);
+                }}
                 className="text-gray-400 hover:text-gray-600">
                 ✕
               </button>
@@ -1981,25 +2020,33 @@ export default function ProductsPage() {
                         className="relative w-16 h-16 border rounded overflow-hidden group">
                         <img
                           src={url}
-                          alt={`Product ${index + 1}`}
+                          alt={`Hình ${index + 1}`}
                           className="w-full h-full object-cover"
+                          onError={() => {
+                            setImageLoadErrors((prev) =>
+                              new Set(prev).add(index)
+                            );
+                          }}
+                          onLoad={() => {
+                            setImageLoadErrors((prev) => {
+                              const newSet = new Set(prev);
+                              newSet.delete(index);
+                              return newSet;
+                            });
+                          }}
                         />
+                        {imageLoadErrors.has(index) && (
+                          <div className="absolute inset-0 bg-red-50 flex items-center justify-center">
+                            <span className="text-xs text-red-600">
+                              Lỗi tải ảnh
+                            </span>
+                          </div>
+                        )}
                         <button
                           type="button"
                           onClick={() => handleRemoveImage(index)}
                           className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <svg
-                            className="w-5 h-5 text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
+                          ...
                         </button>
                       </div>
                     ))}
@@ -2266,7 +2313,10 @@ export default function ProductsPage() {
 
             <div className="flex justify-end space-x-3 mt-6">
               <button
-                onClick={() => setShowEditModal(false)}
+                onClick={() => {
+                  setShowEditModal(false);
+                  setIsCreateMode(false);
+                }}
                 className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
                 Bỏ qua
               </button>
